@@ -7,6 +7,8 @@ class Command:
         self.stdout = []
     def RunNext(self):
         if self.currentcommand != len(self.commands):
+            if self.commands[self.currentcommand] == "<RESET>":
+                raise Exception("STOP")
             print(f"EXECUTING {self.commands[self.currentcommand]}")
             x = os.popen(self.commands[self.currentcommand])
             self.stdout.append(x.read())

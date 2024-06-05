@@ -103,13 +103,13 @@ class MultiConnSingleInstructionServerWithCommands(MultiConnServer):
                     while connection == False:
                         time.sleep(0.1)
                         connection = self.connectionqueue.DeQueue()
-                        print(self.connectionqueue.count)
                     for command in commands:
+                        if command == "<UPDATE>":
+                            connection.Send(b"git clone https://github.com/sopho-s/Talk")
+                            connection.Send(b"<RESET>")
                         connection.Send(command.encode("utf-8"))
-                        msg = connection.Recieve(1024).decode()
-                        while msg != "<COMMAND_RECIEVED>":
-                            print(msg)
-                            msg = connection.Recieve(1024).decode()
+                        while connection.Recieve(1024).decode() != "<COMMAND_RECIEVED>":
+                            break
                     connection.Send(b"<END>")
                     while connection.Recieve(1024).decode() != "<END_RECIEVED>":
                         pass

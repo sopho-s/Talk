@@ -46,8 +46,13 @@ class CommandClient:
                         while command != "<START_JOB>":
                             command = s.recv(1024).decode()
                         Command = Commands.Command(commands)
-                        while Command.RunNext():
-                            pass
+                        try:
+                            while Command.RunNext():
+                                pass
+                        except Exception:
+                            s.close()
+                            print("PERFORMING CLIENT RESET")
+                            break
                         print("JOBDONE")
                         s.sendall(b"<DONE_JOB>")
                         count = 1
