@@ -52,7 +52,7 @@ class CommandClient:
                         s.sendall(b"<DONE_JOB>")
                         count = 1
                         print("\n\n")
-                        for out in command.stdout:
+                        for out in Command.stdout:
                             print(f"COMMAND {count}:")
                             count += 1
                             print(out)
