@@ -30,9 +30,7 @@ class CommandClient:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
                 s.connect((HOST, PORT))
-                s.sendall(b"<CONNECTED>")
-                time.sleep(0.1)
-                s.sendall(self.name)
+                s.sendall(b"<CONNECTED>" + self.name)
                 data = ""
                 while len(data) == 0:
                     data = s.recv(1024).decode()
@@ -58,3 +56,5 @@ class CommandClient:
                         print(f"RECIEVED {command}")
             except KeyboardInterrupt:
                 s.close()
+            except ConnectionResetError:
+                print("CONNECTION CLOSED")

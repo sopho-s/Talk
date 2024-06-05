@@ -10,14 +10,12 @@ class CircularQueue:
         self.queuelock = threading.Lock()
     def EnQueue(self, item):
         if self.count == self.size:
-            print("FULL, THREAD WILL NOT BE ADDED")
             return False
         with self.queuelock:
             self.queue[self.tail] = item
             self.tail += 1
             self.tail = self.tail % self.size
             self.count += 1
-        print("THREAD ADDED")
         return True
     def DeQueue(self):
         if self.count == 0:
