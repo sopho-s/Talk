@@ -106,8 +106,10 @@ class MultiConnSingleInstructionServerWithCommands(MultiConnServer):
                         print(self.connectionqueue.count)
                     for command in commands:
                         connection.Send(command.encode("utf-8"))
-                        while connection.Recieve(1024).decode() != "<COMMAND RECIEVED>":
-                            pass
+                        msg = connection.Recieve(1024).decode()
+                        while msg != "<COMMAND_RECIEVED>":
+                            print(msg)
+                            msg = connection.Recieve(1024).decode()
                     connection.Send(b"<END>")
                     while connection.Recieve(1024).decode() != "<END_RECIEVED>":
                         pass

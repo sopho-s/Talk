@@ -50,7 +50,13 @@ class CommandClient:
                             pass
                         print("JOBDONE")
                         s.sendall(b"<DONE_JOB>")
-                        print(Command.stdout)
+                        count = 1
+                        print("\n\n")
+                        for out in command.stdout:
+                            print(f"COMMAND {count}:")
+                            count += 1
+                            print(out)
+                            print("\n\n")
                         commands = []
                     else:
                         commands.append(command)
