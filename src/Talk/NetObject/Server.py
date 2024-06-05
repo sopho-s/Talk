@@ -81,8 +81,8 @@ class MultiConnSingleInstructionServerWithCommands(MultiConnServer):
                     data = ""
                     while len(data) == 0:
                         data = conn.recv(1024).decode()
-                    if data[0:12] == "<CONNECTED>":
-                        objconn = Connection.Connection(conn, addr, conn.recv(1024).decode())
+                    if data[0:11] == "<CONNECTED>":
+                        objconn = Connection.Connection(conn, addr, data[11:])
                         objconn.Send(b"<WELCOME " + objconn.name.encode('utf-8') + b">")
                         self.connectionqueue.EnQueue(objconn)
                     else:
@@ -106,6 +106,8 @@ class MultiConnSingleInstructionServerWithCommands(MultiConnServer):
                         print(self.connectionqueue.count)
                     for command in commands:
                         connection.Send(command.encode("utf-8"))
+                        while connection.Recieve(1024).decode() != "<COMMAND RECIEVED>":
+                            pass
                     connection.Send(b"<END>")
                     while connection.Recieve(1024).decode() != "<END_RECIEVED>":
                         pass

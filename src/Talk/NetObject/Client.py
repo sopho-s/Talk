@@ -40,6 +40,7 @@ class CommandClient:
                 commands = []
                 while True:
                     command = s.recv(1024).decode()
+                    s.sendall(b"<COMMAND_RECIEVED>")
                     if command == "<END>" or command == "<END><END>":
                         s.sendall(b"<END_RECIEVED>")
                         while command != "<START_JOB>":
