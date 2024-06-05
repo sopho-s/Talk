@@ -1,7 +1,9 @@
 import socket
 import time
+import threading
 from ..NetObject import Connection
 from ..Threading import Threading
+from ..Objects import Queue
 
 class Server:
     def __init__(self, HOST, PORT):
@@ -53,3 +55,75 @@ class SleepyMultiConnServer(MultiConnServer):
             else:
                 print(data)
             time.sleep(self.sleeptime)
+
+class MultiConnSingleInstructionServerWithCommands(MultiConnServer):
+    def __init__(self, HOST, PORT):
+        super().__init__(HOST, PORT)
+        self.commands = []
+        self.commandlock = threading.Lock()
+        self.commandhandler = None
+        self.connectionqueue = Queue.CircularQueue(10)
+        self.shutdown = False
+    @Threading.threaded
+    def StartServer(self):
+        self.commandhandler = self.CommandHandler()
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            try:
+                s.bind((self.HOST, self.PORT))
+                while True:
+                    if self.shutdown:
+                        s.close()
+                        self.commandhandler.raise_exception()
+                        self.commandhandler.join()
+                        return
+                    s.listen()
+                    conn, addr = s.accept()
+                    data = ""
+                    while len(data) == 0:
+                        data = conn.recv(1024).decode()
+                    if data == "<CONNECTED>":
+                        objconn = Connection.Connection(conn, addr, conn.recv(1024).decode())
+                        objconn.Send(b"<WELCOME " + objconn.name.encode('utf-8') + b">")
+                        self.connectionqueue.EnQueue(objconn)
+                    else:
+                        conn.sendall(b"CLIENT ATTEMPTED TO CONNECT TO A COMMAND SERVER WITHOUT COMMANDS, THUS CONNECTION WILL BE TERMINATED")
+                        conn.close()  
+                        print(f"CLIENT ATTEMPTED TO CONNECT TO A COMMAND SERVER WITHOUT COMMANDS, INSTEAD GOT {data}")
+            except KeyboardInterrupt:
+                s.close()
+    @Threading.threaded
+    def CommandHandler(self):
+        while True:
+            if self.connectionqueue.count != 0 and len(self.commands) > 0:
+                commands = []
+                with self.commandlock:
+                    print("BEGINNING EXECUTION")
+                    commands = self.commands.pop(0)
+                try:
+                    connection = self.connectionqueue.DeQueue()
+                    while connection == False:
+                        time.sleep(0.1)
+                        connection = self.connectionqueue.DeQueue()
+                        print(self.connectionqueue.count)
+                    print("GOT THREAD")
+                    for command in commands:
+                        connection.Send(command.encode("utf-8"))
+                    connection.Send(b"<END>")
+                    print("SENT COMMAND")
+                    while connection.Recieve(1024).decode() != "<END_RECIEVED>":
+                        pass
+                    connection.Send(b"<START_JOB>")
+                    print("STARTED JOB")
+                    while connection.Recieve(1024).decode() != "<DONE_JOB>":
+                        pass
+                    print("JOB DONE")
+                    connection = self.connectionqueue.EnQueue(connection)
+                except KeyboardInterrupt:
+                    connection.Send(b"<STOP_JOB>")
+                    while connection.Recieve() != "<JOB_STOPPED>":
+                        pass
+                    connection.Send(b"<QUIT_JOB>")
+                    while connection.Recieve() != "<JOB_QUIT>":
+                        pass
+                    break
+                    
