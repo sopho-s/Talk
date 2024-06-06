@@ -94,6 +94,7 @@ class MultiConnSingleInstructionServerWithCommands(MultiConnServer):
     @Threading.threaded
     def CommandHandler(self):
         while True:
+            shouldberestored = True
             if self.connectionqueue.count != 0 and len(self.commands) > 0:
                 commands = []
                 with self.commandlock:
@@ -111,6 +112,7 @@ class MultiConnSingleInstructionServerWithCommands(MultiConnServer):
                             connection.Send(b"<RESET>")
                             while connection.Recieve(1024).decode() != "<COMMAND_RECIEVED>":
                                 break
+                            shouldberestored = False
                         else:
                             connection.Send(command.encode("utf-8"))
                             while connection.Recieve(1024).decode() != "<COMMAND_RECIEVED>":
@@ -121,7 +123,11 @@ class MultiConnSingleInstructionServerWithCommands(MultiConnServer):
                     connection.Send(b"<START_JOB>")
                     while connection.Recieve(1024).decode() != "<DONE_JOB>":
                         pass
-                    connection = self.connectionqueue.EnQueue(connection)
+                    if shouldberestored:
+                        print("RESTORED CLIENT")
+                        connection = self.connectionqueue.EnQueue(connection)
+                    else:
+                        print("CLIENT DUMPED")
                 except KeyboardInterrupt:
                     connection.Send(b"<STOP_JOB>")
                     while connection.Recieve() != "<JOB_STOPPED>":
