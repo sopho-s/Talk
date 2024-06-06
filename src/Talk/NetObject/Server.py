@@ -84,6 +84,7 @@ class MultiConnSingleInstructionServerWithCommands(MultiConnServer):
                     if data[0:11] == "<CONNECTED>":
                         objconn = Connection.Connection(conn, addr, data[11:])
                         objconn.Send(b"<WELCOME " + objconn.name.encode('utf-8') + b">")
+                        print("NEW CLIENT CONNECTED")
                         self.connectionqueue.EnQueue(objconn)
                     else:
                         conn.sendall(b"CLIENT ATTEMPTED TO CONNECT TO A COMMAND SERVER WITHOUT COMMANDS, THUS CONNECTION WILL BE TERMINATED")
