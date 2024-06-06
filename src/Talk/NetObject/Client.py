@@ -64,12 +64,12 @@ class CommandClient:
                             break
                         print("JOBDONE")
                         s.sendall(b"<DONE_JOB>")
-                        while connection.Recieve(1024).decode() != "<GET_OUTPUT>":
+                        while s.Recieve(1024).decode() != "<GET_OUTPUT>":
                             pass
                         for out in Command.stdout:
                             print(out)
-                            connection.Send(out.encode('utf-8'))
-                            while connection.Recieve(1024).decode() != "<NEXT_OUTPUT>":
+                            s.Send(out.encode('utf-8'))
+                            while s.Recieve(1024).decode() != "<NEXT_OUTPUT>":
                                 pass
                         s.sendall(b"<OUTPUT_DONE>")
                         commands = []

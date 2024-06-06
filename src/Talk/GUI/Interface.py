@@ -7,7 +7,6 @@ def SubmitCommands(commands, isupdate, server):
     commands = commands.get("1.0","end").split("\n")
     if isupdate:
         commands.append("<UPDATE>")
-    commands.append("<END>")
     with server.commandlock:
         server.commands.append(commands)
         print("COMMAND SUBMITTED")

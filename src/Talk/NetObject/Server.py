@@ -106,23 +106,31 @@ class MultiConnSingleInstructionServerWithCommands(MultiConnServer):
                         time.sleep(0.1)
                         connection = self.connectionqueue.DeQueue()
                     for command in commands:
+                        if command == "":
+                            break
                         if command == "<UPDATE>":
                             connection.Send(b"git pull")
                             while connection.Recieve(1024).decode() != "<COMMAND_RECIEVED>":
-                                break
+                                pass
                             connection.Send(b"<RESET>")
                             while connection.Recieve(1024).decode() != "<COMMAND_RECIEVED>":
-                                break
+                                pass
+                            print("TEST")
                             shouldberestored = False
                         else:
                             connection.Send(command.encode("utf-8"))
                             while connection.Recieve(1024).decode() != "<COMMAND_RECIEVED>":
-                                break
+                                pass
                     connection.Send(b"<END>")
-                    while connection.Recieve(1024).decode() != "<END_RECIEVED>":
-                        pass
+                    print("TEST")
+                    msg = connection.Recieve(1024).decode()
+                    while msg != "<END_RECIEVED>":
+                        print(msg)
+                        msg = connection.Recieve(1024).decode()
+                    print("TEST")
                     connection.Send(b"<START_JOB>")
                     if shouldberestored:
+                        print("TEST")
                         while connection.Recieve(1024).decode() != "<DONE_JOB>":
                             pass
                         connection.Send(b"<GET_OUTPUT>")
