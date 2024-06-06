@@ -15,11 +15,13 @@ def SubmitCommands(commands, isupdate, server):
     with server.commandlock:
         server.commands.append(commands)
         print("COMMAND SUBMITTED")
+        
+def GetStatus(server):
+    server.statusupdate = True
 
 def ShutdownServer(server, serverthread):
     print("SHUTTING DOWN")
     os._exit(1)
-    
 
 def StartServer(root, button):
     global cServer
@@ -33,11 +35,13 @@ def StartServer(root, button):
     update = tk.Button(root, width=20, height=2, text='Submit and update', command=lambda: SubmitCommands(commands, True, cServer))
     submit = tk.Button(root, width=20, height=2, text='Submit', command=lambda: SubmitCommands(commands, False, cServer))
     shutdown = tk.Button(root, width=20, height=2, text='Shutdown', command=lambda: ShutdownServer(cServer, serverthread))
+    statusupdate = tk.Button(root, width=20, height=2, text='Get status update', command=lambda: GetStatus(cServer))
     button.pack_forget()
     commands.pack()
     update.pack()
     submit.pack()
     shutdown.pack()
+    statusupdate.pack()
     
 def main():
     root = tk.Tk()

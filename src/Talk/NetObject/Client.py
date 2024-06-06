@@ -48,32 +48,39 @@ class CommandClient:
                 commands = []
                 while True:
                     command = s.recv(1024).decode()
-                    print(f"RECIEVED {command}")
-                    s.sendall(b"<COMMAND_RECIEVED>")
-                    if command == "<END>" or command == "<END><END>":
-                        s.sendall(b"<END_RECIEVED>")
-                        while command != "<START_JOB>":
-                            command = s.recv(1024).decode()
-                        Command = Commands.Command(commands)
-                        try:
-                            while Command.RunNext():
+                    if command != "<GIVE_STATUS>":
+                        print(f"RECIEVED {command}")
+                        s.sendall(b"<COMMAND_RECIEVED>")
+                        if command == "<END>" or command == "<END><END>":
+                            s.sendall(b"<END_RECIEVED>")
+                            while command != "<START_JOB>":
+                                command = s.recv(1024).decode()
+                            Command = Commands.Command(commands)
+                            try:
+                                while Command.RunNext():
+                                    pass
+                            except Exception:
+                                s.close()
+                                print("PERFORMING CLIENT RESET")
+                                break
+                            print("JOBDONE")
+                            s.sendall(b"<DONE_JOB>")
+                            while s.recv(1024).decode() != "<GET_OUTPUT>":
                                 pass
-                        except Exception:
-                            s.close()
-                            print("PERFORMING CLIENT RESET")
-                            break
-                        print("JOBDONE")
-                        s.sendall(b"<DONE_JOB>")
-                        while s.recv(1024).decode() != "<GET_OUTPUT>":
-                            pass
-                        for command in Command.stdout:
-                            s.sendall(command.encode('utf-8'))
-                            while s.recv(1024).decode() != "<NEXT_OUTPUT>":
-                                pass
-                        s.sendall(b"<OUTPUT_DONE>")
-                        commands = []
+                            for command in Command.stdout:
+                                s.sendall(command.encode('utf-8'))
+                                while s.recv(1024).decode() != "<NEXT_OUTPUT>":
+                                    pass
+                            s.sendall(b"<OUTPUT_DONE>")
+                            commands = []
+                        else:
+                            commands.append(command)
                     else:
-                        commands.append(command)
+                        s.sendall(b"<OK_START>")
+                        for i in range(10):
+                            while s.recv(1024).decode() != "<PING>":
+                                pass
+                            s.sendall(b"<PONG>")
             except KeyboardInterrupt:
                 s.close()
             except ConnectionResetError:

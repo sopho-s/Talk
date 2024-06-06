@@ -6,6 +6,14 @@ from ..NetObject import Connection
 from ..Threading import Threading
 from ..Objects import Queue
 
+class StatusWidgit:
+    def __init__(self):
+        self.widgit = None
+        self.namewidgit = None
+        self.name = None
+        self.timetakenwidgit = None
+        self.timetaken = None
+
 class Server:
     def __init__(self, HOST, PORT):
         self.HOST = HOST
@@ -104,23 +112,23 @@ class MultiConnSingleInstructionServerWithCommands(MultiConnServer):
                     for command in commands:
                         if command == "<UPDATE>":
                             connection.Send(b"git pull")
-                            while connection.Recieve(1024).decode() != "<COMMAND_RECIEVED>":
-                                pass
+                            if connection.Recieve(1024).decode() != "<COMMAND_RECIEVED>":
+                                raise Exception("RECEIVED INCORRECT RESPONSE")
                             connection.Send(b"<RESET>")
-                            while connection.Recieve(1024).decode() != "<COMMAND_RECIEVED>":
-                                pass
+                            if connection.Recieve(1024).decode() != "<COMMAND_RECIEVED>":
+                                raise Exception("RECEIVED INCORRECT RESPONSE")
                             shouldberestored = False
                         else:
                             connection.Send(command.encode("utf-8"))
-                            while connection.Recieve(1024).decode() != "<COMMAND_RECIEVED>":
-                                pass
+                            if connection.Recieve(1024).decode() != "<COMMAND_RECIEVED>":
+                                raise Exception("RECEIVED INCORRECT RESPONSE")
                     connection.Send(b"<END>")
-                    while connection.Recieve(1024).decode() != "<END_RECIEVED>":
-                        pass
+                    if connection.Recieve(1024).decode() != "<END_RECIEVED>":
+                        raise Exception("RECEIVED INCORRECT RESPONSE")
                     connection.Send(b"<START_JOB>")
                     if shouldberestored:
-                        while connection.Recieve(1024).decode() != "<DONE_JOB>":
-                            pass
+                        if connection.Recieve(1024).decode() != "<DONE_JOB>":
+                            raise Exception("RECEIVED INCORRECT RESPONSE")
                         connection.Send(b"<GET_OUTPUT>")
                         output = connection.Recieve(1024).decode()
                         count = 1
@@ -134,11 +142,11 @@ class MultiConnSingleInstructionServerWithCommands(MultiConnServer):
                         connection = self.connectionqueue.EnQueue(connection)
                 except KeyboardInterrupt:
                     connection.Send(b"<STOP_JOB>")
-                    while connection.Recieve() != "<JOB_STOPPED>":
-                        pass
+                    if connection.Recieve() != "<JOB_STOPPED>":
+                        raise Exception("RECEIVED INCORRECT RESPONSE")
                     connection.Send(b"<QUIT_JOB>")
-                    while connection.Recieve() != "<JOB_QUIT>":
-                        pass
+                    if connection.Recieve() != "<JOB_QUIT>":
+                        raise Exception("RECEIVED INCORRECT RESPONSE")
                     break
             else:
                 time.sleep(0.2)
@@ -166,13 +174,20 @@ class MultiConnSingleInstructionServerWithCommandsWidgitHandling(MultiConnSingle
                         objconn.Send(b"<WELCOME " + objconn.name.encode('utf-8') + b">")
                         print("NEW CLIENT CONNECTED")
                         self.connectionqueue.EnQueue(objconn)
+                        newstatuswidgit = StatusWidgit()
                         clientwigit = tk.Toplevel(self.widgit)
-                        self.statuswidgits.append([objconn.name, clientwigit])
+                        newstatuswidgit.name = objconn.name
+                        newstatuswidgit.widgit = clientwigit
+                        self.statuswidgits.append(newstatuswidgit)
                         name = tk.Label(clientwigit, text=objconn.name)
+                        timetaken = tk.Label(clientwigit, text="")
                         clientwigit.grid_columnconfigure(0, weight=1)
                         name.grid_columnconfigure(0, weight=1)
                         name.grid(column=0)
-                        name = tk.Label(clientwigit, text="address")
+                        timetaken.grid(column=1)
+                        timetaken.grid_columnconfigure(1, weight=1)
+                        newstatuswidgit.namewidgit = name
+                        newstatuswidgit.timetakenwidget = timetaken
                     else:
                         conn.sendall(b"CLIENT ATTEMPTED TO CONNECT TO A COMMAND SERVER WITHOUT COMMANDS, THUS CONNECTION WILL BE TERMINATED")
                         conn.close()  
@@ -195,23 +210,23 @@ class MultiConnSingleInstructionServerWithCommandsWidgitHandling(MultiConnSingle
                     for command in commands:
                         if command == "<UPDATE>":
                             connection.Send(b"git pull")
-                            while connection.Recieve(1024).decode() != "<COMMAND_RECIEVED>":
-                                pass
+                            if connection.Recieve(1024).decode() != "<COMMAND_RECIEVED>":
+                                raise Exception("RECEIVED INCORRECT RESPONSE")
                             connection.Send(b"<RESET>")
-                            while connection.Recieve(1024).decode() != "<COMMAND_RECIEVED>":
-                                pass
+                            if connection.Recieve(1024).decode() != "<COMMAND_RECIEVED>":
+                                raise Exception("RECEIVED INCORRECT RESPONSE")
                             shouldberestored = False
                         else:
                             connection.Send(command.encode("utf-8"))
-                            while connection.Recieve(1024).decode() != "<COMMAND_RECIEVED>":
-                                pass
+                            if connection.Recieve(1024).decode() != "<COMMAND_RECIEVED>":
+                                raise Exception("RECEIVED INCORRECT RESPONSE")
                     connection.Send(b"<END>")
-                    while connection.Recieve(1024).decode() != "<END_RECIEVED>":
-                        pass
+                    if connection.Recieve(1024).decode() != "<END_RECIEVED>":
+                        raise Exception("RECEIVED INCORRECT RESPONSE")
                     connection.Send(b"<START_JOB>")
                     if shouldberestored:
-                        while connection.Recieve(1024).decode() != "<DONE_JOB>":
-                            pass
+                        if connection.Recieve(1024).decode() != "<DONE_JOB>":
+                            raise Exception("RECEIVED INCORRECT RESPONSE")
                         connection.Send(b"<GET_OUTPUT>")
                         output = connection.Recieve(1024).decode()
                         count = 1
@@ -225,12 +240,31 @@ class MultiConnSingleInstructionServerWithCommandsWidgitHandling(MultiConnSingle
                         connection = self.connectionqueue.EnQueue(connection)
                 except KeyboardInterrupt:
                     connection.Send(b"<STOP_JOB>")
-                    while connection.Recieve() != "<JOB_STOPPED>":
-                        pass
+                    if connection.Recieve() != "<JOB_STOPPED>":
+                        raise Exception("RECEIVED INCORRECT RESPONSE")
                     connection.Send(b"<QUIT_JOB>")
-                    while connection.Recieve() != "<JOB_QUIT>":
-                        pass
+                    if connection.Recieve() != "<JOB_QUIT>":
+                        raise Exception("RECEIVED INCORRECT RESPONSE")
                     break
+            elif self.statusupdate:
+                for client in self.connectionqueue:
+                    client.Send(b"<GIVE_STATUS>")
+                    conn.settimeout(10)
+                    if connection.Recieve() != "<OK_START>":
+                        raise Exception("RECEIVED INCORRECT RESPONSE")
+                    total = 0
+                    for i in range(10):
+                        connection.Send(b"<PING>")
+                        start = time.time()
+                        if connection.Recieve() != "<PONG>":
+                            raise Exception("RECEIVED INCORRECT RESPONSE")
+                        total += (time.time() - start) / 10
+                    for statuswidgit in self.statuswidgits:
+                        if statuswidgit.name == client.name:
+                            statuswidgit.timetaken = total
+                            statuswidgit.timetakenwidget.config(text="Ping: " + str(total))
+                    conn.settimeout(None)
+                self.statusupdate = 0
             else:
                 time.sleep(0.2)
                     

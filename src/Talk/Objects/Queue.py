@@ -8,6 +8,17 @@ class CircularQueue:
         self.tail = 0
         self.queue = [None for _ in range(size)]
         self.queuelock = threading.Lock()
+        self.current = self.head
+    def __iter__(self):
+        return self
+    def __next__(self):
+        with self.queuelock:
+            if self.current > self.tail:
+                self.current += 1
+                return self.queue[self.current-1]
+            else:
+                self.current = self.head
+                raise StopIteration
     def EnQueue(self, item):
         if self.count == self.size:
             return False
@@ -25,6 +36,7 @@ class CircularQueue:
             returnval = self.queue[self.head]
             self.head += 1
             self.head = self.head % self.size
+            self.current = self.head
             self.count -= 1
         return returnval
             
