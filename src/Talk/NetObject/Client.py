@@ -66,8 +66,8 @@ class CommandClient:
                         s.sendall(b"<DONE_JOB>")
                         while s.recv(1024).decode() != "<GET_OUTPUT>":
                             pass
-                        for i in range(len(Command.stdout)):
-                            s.sendall(str(len(Command.stdout)).encode('utf-8'))
+                        for command in Command.stdout:
+                            s.sendall(command.encode('utf-8'))
                             while s.recv(1024).decode() != "<NEXT_OUTPUT>":
                                 pass
                         s.sendall(b"<OUTPUT_DONE>")

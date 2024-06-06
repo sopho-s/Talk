@@ -129,6 +129,7 @@ class MultiConnSingleInstructionServerWithCommands(MultiConnServer):
                             print(output)
                             print("\n\n")
                             connection.Send(b"<NEXT_OUTPUT>")
+                            output = connection.Recieve(1024).decode()
                         connection = self.connectionqueue.EnQueue(connection)
                 except KeyboardInterrupt:
                     connection.Send(b"<STOP_JOB>")
