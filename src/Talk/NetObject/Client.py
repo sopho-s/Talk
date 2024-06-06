@@ -50,7 +50,6 @@ class CommandClient:
                     command = s.recv(1024).decode()
                     if command != "<GIVE_STATUS>":
                         print(f"RECIEVED {command}")
-                        s.sendall(b"<COMMAND_RECIEVED>")
                         if command == "<END>" or command == "<END><END>":
                             s.sendall(b"<END_RECIEVED>")
                             while command != "<START_JOB>":
@@ -74,6 +73,7 @@ class CommandClient:
                             s.sendall(b"<OUTPUT_DONE>")
                             commands = []
                         else:
+                            s.sendall(b"<COMMAND_RECIEVED>")
                             commands.append(command)
                     else:
                         s.sendall(b"<OK_START>")
