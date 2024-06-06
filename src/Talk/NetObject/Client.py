@@ -35,7 +35,8 @@ class CommandClient:
                         s.connect((HOST, PORT))
                         break
                     except:
-                        pass
+                        time.sleep(1)
+                        print("WAITING")
                 print("CONNECTED")
                 s.sendall(b"<CONNECTED>" + self.name)
                 data = ""
