@@ -36,7 +36,7 @@ class CommandClient:
                         break
                     except:
                         pass
-                print("CONNECTED")
+                print("CONNECTED AND UPDATE WORKS!!!")
                 s.sendall(b"<CONNECTED>" + self.name)
                 data = ""
                 while len(data) == 0:
