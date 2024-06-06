@@ -105,6 +105,7 @@ class MultiConnSingleInstructionServerWithCommands(MultiConnServer):
                         connection = self.connectionqueue.DeQueue()
                     for command in commands:
                         if command == "<UPDATE>":
+                            connection.Send(b"rm -rf ~/Talk")
                             connection.Send(b"git clone https://github.com/sopho-s/Talk")
                             connection.Send(b"<RESET>")
                         connection.Send(command.encode("utf-8"))

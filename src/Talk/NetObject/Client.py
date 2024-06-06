@@ -27,9 +27,16 @@ class CommandClient:
     def __init__(self, name):
         self.name = name
     def ConnectClient(self, HOST, PORT):
+        error = False
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
-                s.connect((HOST, PORT))
+                while True:
+                    try:
+                        s.connect((HOST, PORT))
+                        break
+                    except:
+                        pass
+                print("CONNECTED")
                 s.sendall(b"<CONNECTED>" + self.name)
                 data = ""
                 while len(data) == 0:

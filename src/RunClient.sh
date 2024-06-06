@@ -2,6 +2,6 @@
 
 while true
 do
-    python Client.py
+    python3 Client.py
     sleep 1
 done
