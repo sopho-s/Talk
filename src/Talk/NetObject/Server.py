@@ -248,22 +248,28 @@ class MultiConnSingleInstructionServerWithCommandsWidgitHandling(MultiConnSingle
                     break
             elif self.statusupdate:
                 for client in self.connectionqueue:
+                    print(client.name)
                     client.Send(b"<GIVE_STATUS>")
-                    conn.settimeout(10)
-                    if connection.Recieve() != "<OK_START>":
+                    client.SetTimeout(10)
+                    print("TEST1")
+                    if client.RecieveAll() != "<OK_START>":
                         raise Exception("RECEIVED INCORRECT RESPONSE")
+                    print("TEST2")
                     total = 0
                     for i in range(10):
-                        connection.Send(b"<PING>")
+                        print(f"TESTi{i}")
+                        client.Send(b"<PING>")
                         start = time.time()
-                        if connection.Recieve() != "<PONG>":
+                        if client.RecieveAll() != "<PONG>":
                             raise Exception("RECEIVED INCORRECT RESPONSE")
                         total += (time.time() - start) / 10
                     for statuswidgit in self.statuswidgits:
+                        print(f"TEST3")
                         if statuswidgit.name == client.name:
                             statuswidgit.timetaken = total
                             statuswidgit.timetakenwidget.config(text="Ping: " + str(total))
-                    conn.settimeout(None)
+                    print("DONE")
+                    client.SetTimeout(None)
                 self.statusupdate = 0
             else:
                 time.sleep(0.2)

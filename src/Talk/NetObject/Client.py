@@ -76,6 +76,7 @@ class CommandClient:
                             s.sendall(b"<COMMAND_RECIEVED>")
                             commands.append(command)
                     else:
+                        print("TEST")
                         s.sendall(b"<OK_START>")
                         for i in range(10):
                             while s.recv(1024).decode() != "<PING>":

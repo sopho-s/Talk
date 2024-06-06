@@ -6,6 +6,8 @@ class Connection:
         self.address = address
         self.name = name
         self.isbusy = False
+    def SetTimeout(self, timeout):
+        self.connection.settimeout(timeout)
     def Recieve(self, amount):
         return self.connection.recv(amount)
     def RecieveAll(self):
