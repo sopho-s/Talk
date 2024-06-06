@@ -138,4 +138,6 @@ class MultiConnSingleInstructionServerWithCommands(MultiConnServer):
                     while connection.Recieve() != "<JOB_QUIT>":
                         pass
                     break
+            else:
+                time.sleep(0.2)
                     
