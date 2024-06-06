@@ -183,8 +183,8 @@ class MultiConnSingleInstructionServerWithCommandsWidgitHandling(MultiConnSingle
                         timetaken = tk.Label(clientwigit, text="")
                         clientwigit.grid_columnconfigure(0, weight=1)
                         name.grid_columnconfigure(0, weight=1)
-                        name.grid(column=0)
-                        timetaken.grid(column=1)
+                        name.grid(row=0)
+                        timetaken.grid(row=1)
                         timetaken.grid_columnconfigure(1, weight=1)
                         newstatuswidgit.namewidgit = name
                         newstatuswidgit.timetakenwidget = timetaken
@@ -248,27 +248,22 @@ class MultiConnSingleInstructionServerWithCommandsWidgitHandling(MultiConnSingle
                     break
             elif self.statusupdate:
                 for client in self.connectionqueue:
-                    print(client.name)
                     client.Send(b"<GIVE_STATUS>")
                     client.SetTimeout(10)
-                    print("TEST1")
-                    if client.RecieveAll() != "<OK_START>":
+                    if client.Recieve(1024).decode() != "<OK_START>":
                         raise Exception("RECEIVED INCORRECT RESPONSE")
-                    print("TEST2")
                     total = 0
                     for i in range(10):
-                        print(f"TESTi{i}")
                         client.Send(b"<PING>")
                         start = time.time()
-                        if client.RecieveAll() != "<PONG>":
+                        if client.Recieve(1024).decode() != "<PONG>":
                             raise Exception("RECEIVED INCORRECT RESPONSE")
                         total += (time.time() - start) / 10
+                    total *= 1000
                     for statuswidgit in self.statuswidgits:
-                        print(f"TEST3")
                         if statuswidgit.name == client.name:
                             statuswidgit.timetaken = total
-                            statuswidgit.timetakenwidget.config(text="Ping: " + str(total))
-                    print("DONE")
+                            statuswidgit.timetakenwidget.config(text=f"Ping: " + ("%.0f" % total) + "ms")
                     client.SetTimeout(None)
                 self.statusupdate = 0
             else:
