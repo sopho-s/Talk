@@ -1,4 +1,5 @@
 import tkinter as tk
+import os
 from ..NetObject import Server
 
 cServer = None
@@ -15,13 +16,15 @@ def SubmitCommands(commands, isupdate, server):
         server.commands.append(commands)
         print("COMMAND SUBMITTED")
 
-def ShutdownServer(server):
-    server.shutdown = True
+def ShutdownServer(server, serverthread):
+    print("SHUTTING DOWN")
+    os._exit(1)
     
 
 def StartServer(root, button):
     global cServer
     cServer = Server.MultiConnSingleInstructionServerWithCommands("10.101.1.59", 4245)
+    serverthread = None
     try:
         serverthread = cServer.StartServer()
     except:
@@ -29,12 +32,13 @@ def StartServer(root, button):
     commands = tk.Text(root, height = 5, width = 52)
     update = tk.Button(root, width=20, height=2, text='Submit and update', command=lambda: SubmitCommands(commands, True, cServer))
     submit = tk.Button(root, width=20, height=2, text='Submit', command=lambda: SubmitCommands(commands, False, cServer))
-    submit = tk.Button(root, width=20, height=2, text='Shutdown', command=lambda: ShutdownServer(cServer))
+    shutdown = tk.Button(root, width=20, height=2, text='Shutdown', command=lambda: ShutdownServer(cServer, serverthread))
     button.pack_forget()
     commands.pack()
     update.pack()
     submit.pack()
-
+    shutdown.pack()
+    
 def main():
     root = tk.Tk()
     button = tk.Button(root, text='Start Server', width=40, height=4, command=lambda: StartServer(root, button))

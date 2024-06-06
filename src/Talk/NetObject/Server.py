@@ -71,11 +71,6 @@ class MultiConnSingleInstructionServerWithCommands(MultiConnServer):
             try:
                 s.bind((self.HOST, self.PORT))
                 while True:
-                    if self.shutdown:
-                        s.close()
-                        self.commandhandler.raise_exception()
-                        self.commandhandler.join()
-                        return
                     s.listen()
                     conn, addr = s.accept()
                     data = ""
