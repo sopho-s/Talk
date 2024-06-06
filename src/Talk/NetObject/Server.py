@@ -176,6 +176,7 @@ class MultiConnSingleInstructionServerWithCommandsWidgitHandling(MultiConnSingle
                         self.connectionqueue.EnQueue(objconn)
                         newstatuswidgit = StatusWidgit()
                         clientwigit = tk.Toplevel(self.widgit)
+                        clientwigit.geometry("200x100")
                         newstatuswidgit.name = objconn.name
                         newstatuswidgit.widgit = clientwigit
                         self.statuswidgits.append(newstatuswidgit)

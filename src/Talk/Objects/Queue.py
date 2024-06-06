@@ -12,7 +12,6 @@ class CircularQueue:
     def __iter__(self):
         return self
     def __next__(self):
-        print(True)
         with self.queuelock:
             if self.current < self.tail:
                 self.current += 1
