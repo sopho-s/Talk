@@ -48,6 +48,7 @@ class CommandClient:
                 commands = []
                 while True:
                     command = s.recv(1024).decode()
+                    print(f"RECIEVED {command}")
                     s.sendall(b"<COMMAND_RECIEVED>")
                     if command == "<END>" or command == "<END><END>":
                         s.sendall(b"<END_RECIEVED>")
@@ -66,6 +67,7 @@ class CommandClient:
                         while connection.Recieve(1024).decode() != "<GET_OUTPUT>":
                             pass
                         for out in Command.stdout:
+                            print(out)
                             connection.Send(out.encode('utf-8'))
                             while connection.Recieve(1024).decode() != "<NEXT_OUTPUT>":
                                 pass
@@ -73,7 +75,6 @@ class CommandClient:
                         commands = []
                     else:
                         commands.append(command)
-                        print(f"RECIEVED {command}")
             except KeyboardInterrupt:
                 s.close()
             except ConnectionResetError:
