@@ -125,7 +125,16 @@ class MultiConnSingleInstructionServerWithCommands(MultiConnServer):
                     if shouldberestored:
                         while connection.Recieve(1024).decode() != "<DONE_JOB>":
                             pass
-                            connection = self.connectionqueue.EnQueue(connection)
+                        connection.Send(b"<GET_OUTPUT>")
+                        output = connection.Recieve(1024).decode()
+                        count = 1
+                        while output != "<OUTPUT_DONE>":
+                            print(f"COMMAND {count}:")
+                            count += 1
+                            print(output)
+                            print("\n\n")
+                            connection.Send(b"<NEXT_OUTPUT>")
+                        connection = self.connectionqueue.EnQueue(connection)
                 except KeyboardInterrupt:
                     connection.Send(b"<STOP_JOB>")
                     while connection.Recieve() != "<JOB_STOPPED>":

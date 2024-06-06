@@ -63,13 +63,13 @@ class CommandClient:
                             break
                         print("JOBDONE")
                         s.sendall(b"<DONE_JOB>")
-                        count = 1
-                        print("\n\n")
+                        while connection.Recieve(1024).decode() != "<GET_OUTPUT>":
+                            pass
                         for out in Command.stdout:
-                            print(f"COMMAND {count}:")
-                            count += 1
-                            print(out)
-                            print("\n\n")
+                            connection.Send(out.encode('utf-8'))
+                            while connection.Recieve(1024).decode() != "<NEXT_OUTPUT>":
+                                pass
+                        s.sendall(b"<OUTPUT_DONE>")
                         commands = []
                     else:
                         commands.append(command)
