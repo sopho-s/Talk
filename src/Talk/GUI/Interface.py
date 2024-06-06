@@ -9,7 +9,7 @@ def SubmitCommands(commands, isupdate, server):
     commands = []
     for value in temp:
         if value != "":
-            commmands.append(value)
+            commands.append(value)
     if isupdate:
         commands.append("<UPDATE>")
     with server.commandlock:
