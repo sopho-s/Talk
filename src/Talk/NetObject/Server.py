@@ -124,10 +124,7 @@ class MultiConnSingleInstructionServerWithCommands(MultiConnServer):
                     if shouldberestored:
                         while connection.Recieve(1024).decode() != "<DONE_JOB>":
                             pass
-                            print("RESTORED CLIENT")
                             connection = self.connectionqueue.EnQueue(connection)
-                    else:
-                        print("CLIENT DUMPED")
                 except KeyboardInterrupt:
                     connection.Send(b"<STOP_JOB>")
                     while connection.Recieve() != "<JOB_STOPPED>":

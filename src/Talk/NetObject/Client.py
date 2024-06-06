@@ -77,3 +77,4 @@ class CommandClient:
                 s.close()
             except ConnectionResetError:
                 print("CONNECTION CLOSED")
+                raise Exception("STOP")
