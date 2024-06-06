@@ -80,6 +80,8 @@ class CommandClient:
                         for i in range(10):
                             while s.recv(1024).decode() != "<PING>":
                                 pass
+                            print("<PING>")
+                            print("<PONG>")
                             s.sendall(b"<PONG>")
             except KeyboardInterrupt:
                 s.close()
