@@ -82,14 +82,14 @@ class CommandClient:
                                 raise Exception("RECEIVED INCORRECT RESPONSE")
                             s.sendall(b"<PONG>")
                         s.setblocking(False)
+                        data = ""
                         while True:
                             try:
                                 data = s.recv(4096)
                             except BlockingIOError:
                                 pass
-                            if not data:
+                            if data.decode() != "<EOF>":
                                 break
-                            print("GOT")
                         s.setblocking(True)
                         s.sendall(b"<OK_READY>")
             except KeyboardInterrupt:
