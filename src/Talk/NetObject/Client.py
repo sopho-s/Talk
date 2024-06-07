@@ -88,9 +88,7 @@ class CommandClient:
                                 data = s.recv(4096)
                             except BlockingIOError:
                                 pass
-                            time.sleep(0.1)
-                            print(data)
-                            if data == "<EOF>":
+                            if data == b"<EOF>":
                                 break
                         s.setblocking(True)
                         s.sendall(b"<OK_READY>")
