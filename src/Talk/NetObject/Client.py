@@ -81,12 +81,13 @@ class CommandClient:
                             if s.recv(1024).decode() != "<PING>":
                                 raise Exception("RECEIVED INCORRECT RESPONSE")
                             s.sendall(b"<PONG>")
-                        s.settimeout(10)
+                        s.setblocking(False)
                         while True:
                             data = s.recv(4096)
                             if not data:
                                 break
                             print("GOT")
+                        s.setblocking(True)
                         s.sendall(b"<OK_READY>")
             except KeyboardInterrupt:
                 s.close()
