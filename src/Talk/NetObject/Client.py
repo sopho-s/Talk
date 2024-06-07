@@ -1,6 +1,7 @@
 import socket
 import time
 import os
+import sys
 from ..Command import Commands
 from ..NetObject import Workers
 

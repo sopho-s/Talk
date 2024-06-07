@@ -1,4 +1,5 @@
 import threading
+import sys
 
 def threaded(fn):
     def wrapper(*args, **kwargs):
