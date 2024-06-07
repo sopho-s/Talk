@@ -60,7 +60,8 @@ class StatusWorkerClient(Worker):
                 print("WORKER CONNECTED")
             except:
                 os._exit(1)
-            super().__init__(Connection.Connection(s, HOST, name))
+            self.connection = Connection.Connection(s, HOST, name)
+            self.name = name
     def Run(self):
         while True:
             if self.connection.Recieve(1024).decode() == "<GIVE_STATUS>":
