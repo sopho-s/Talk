@@ -196,7 +196,7 @@ class MCSICWHServer(MultiConnSingleInstructionServerWithCommands):
                             self.statuswidgits.append(newstatuswidgit)
                         elif data == "<STATUS_WORKER>":
                             print("NEW STATUS WORKER CONNECTED")
-                            self.statusworkers.append(objconn)
+                            self.statusworkers.append(Workers.StatusWorkerServer(objconn))
                     else:
                         conn.sendall(b"CLIENT ATTEMPTED TO CONNECT TO A COMMAND SERVER WITHOUT COMMANDS, THUS CONNECTION WILL BE TERMINATED")
                         conn.close()  
@@ -270,17 +270,17 @@ class MCSICWHServer(MultiConnSingleInstructionServerWithCommands):
                             currentwidgit = statuswidgit
                             break
                     currentwidgit.ping = ping
-                    currentwidgit.pingwidget.config(text=f"Ping: " + ("%.0f" % ping) + "ms")
+                    currentwidgit.pingwidgit.config(text=f"Ping: " + ("%.0f" % ping) + "ms")
                     if ping < 10:
-                        currentwidgit.pingwidget.config(fg="#00d100")
+                        currentwidgit.pingwidgit.config(fg="#00d100")
                     elif ping < 40:
-                        currentwidgit.pingwidget.config(fg="#99d100")
+                        currentwidgit.pingwidgit.config(fg="#99d100")
                     elif ping < 100:
-                        currentwidgit.pingwidget.config(fg="#e89f00")
+                        currentwidgit.pingwidgit.config(fg="#e89f00")
                     elif ping < 1000:
-                        currentwidgit.pingwidget.config(fg="#ff2f00")
+                        currentwidgit.pingwidgit.config(fg="#ff2f00")
                     else:
-                        currentwidgit.pingwidget.config(fg="#9e0000")
+                        currentwidgit.pingwidgit.config(fg="#9e0000")
                     currentwidgit.uploadspeed = uploadspeed
                     currentwidgit.uploadspeedwidgit.config(text=f"Upload Speed: " + ("%.2g" % uploadspeed) + "MBs")
                     if uploadspeed < 0.1:

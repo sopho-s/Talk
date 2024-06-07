@@ -9,7 +9,6 @@ class Connection:
     def SetTimeout(self, timeout):
         self.connection.settimeout(timeout)
     def Recieve(self, amount):
-        print(self.connection)
         return self.connection.recv(amount)
     def RecieveAll(self):
         bytes = bytearray()
