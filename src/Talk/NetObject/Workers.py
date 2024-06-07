@@ -62,14 +62,16 @@ class StatusWorkerClient(Worker):
                 os._exit(1)
             super().__init__(Connection.Connection(s, HOST, name))
     def Run(self):
-        self.connection.Send(b"<OK_START>")
-        for i in range(10):
-            if self.connection.Recieve(1024).decode() != "<PING>":
-                raise Exception("RECEIVED INCORRECT RESPONSE")
-            self.connection.Send(b"<PONG>")
-        data = ""
         while True:
-            data = self.connection.Recieve(4096)
-            if data[-5:] == b"<EOF>":
-                break
-        self.connection.Send(b"<OK_READY>")
+            if self.connection.RecieveAll().decode() == "<GIVE_STATUS>":
+                self.connection.Send(b"<OK_START>")
+                for i in range(10):
+                    if self.connection.Recieve(1024).decode() != "<PING>":
+                        raise Exception("RECEIVED INCORRECT RESPONSE")
+                    self.connection.Send(b"<PONG>")
+                data = ""
+                while True:
+                    data = self.connection.Recieve(4096)
+                    if data[-5:] == b"<EOF>":
+                        break
+                self.connection.Send(b"<OK_READY>")
