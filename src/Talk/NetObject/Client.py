@@ -85,6 +85,7 @@ class CommandClient:
                             data = s.recv(4096)
                             if not data:
                                 break
+                        s.sendall(b"<OK_READY>")
             except KeyboardInterrupt:
                 s.close()
             except ConnectionResetError:
