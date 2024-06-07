@@ -82,7 +82,7 @@ class CommandClient:
                                 raise Exception("RECEIVED INCORRECT RESPONSE")
                             s.sendall(b"<PONG>")
                         while True:
-                            data = s.recv(65536)
+                            data = s.recv(4096)
                             if data != b"<EOF>":
                                 break
             except KeyboardInterrupt:
