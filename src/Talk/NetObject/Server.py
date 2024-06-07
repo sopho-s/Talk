@@ -265,6 +265,18 @@ class MultiConnSingleInstructionServerWithCommandsWidgitHandling(MultiConnSingle
                         if statuswidgit.name == client.name:
                             statuswidgit.timetaken = total
                             statuswidgit.timetakenwidget.config(text=f"Ping: " + ("%.0f" % total) + "ms")
+                            if total < 10:
+                                statuswidgit.timetakenwidget.config(fg="#00d100")
+                            elif total < 40:
+                                statuswidgit.timetakenwidget.config(fg="#99d100")
+                            elif total < 100:
+                                statuswidgit.timetakenwidget.config(fg="#e89f00")
+                            elif total < 1000:
+                                statuswidgit.timetakenwidget.config(fg="#ff2f00")
+                            else:
+                                statuswidgit.timetakenwidget.config(fg="#9e0000")
+                    start = time.time()
+                    client.SendFile("Payload.csv")
                     client.SetTimeout(None)
                 self.statusupdate = 0
             else:

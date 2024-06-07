@@ -21,5 +21,12 @@ class Connection:
         return bytes
     def Send(self, data):
         self.connection.sendall(data)
+    def SendFile(self, filename):
+        file = open(filename, "r")
+        data = file.read(1024)
+        while data:
+            self.connection.send(data.encode("utf-8"))
+            data = file.read(1024)
+        self.connection.send("<EOF>")
     def EndConnection(self):
         self.connection.close()
