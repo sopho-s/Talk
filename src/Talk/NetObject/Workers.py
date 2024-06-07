@@ -6,6 +6,8 @@ from ..NetObject import Connection
 
 class Worker:
     def __init__(self, connection):
+        self.host = None
+        self.address = None
         self.connection = connection
         self.name = connection.name
     def Run(self):
@@ -42,37 +44,39 @@ class StatusWorkerServer(Worker):
 @Threading.classthreaded
 class StatusWorkerClient(Worker):
     def __init__(self, HOST, PORT, name):
+        self.host = HOST
+        self.port = PORT
+        self.name = name
+    def Run(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             while True:
                 try:
-                    s.connect((HOST, PORT))
+                    s.connect((self.host, self.port))
                     break
                 except:
                     time.sleep(1)
-            s.sendall(b"<CONNECTED>" + name.encode("utf-8"))
+            s.sendall(b"<CONNECTED>" + self.name.encode("utf-8"))
             data = ""
             while len(data) == 0:
                 data = s.recv(1024).decode()
-            if data != "<WELCOME " + name + ">":
+            if data != "<WELCOME " + self.name + ">":
                 raise Exception("SERVER DID NOT REPOND CORRECTLY, INSTEAD GOT: " + data)
-            self.connection = [Connection.Connection(s, HOST, name)]
-            self.connection[0].Send(b"<STATUS_WORKER>")
+            self.connection = Connection.Connection(s, self.host, self.name)
+            self.connection.Send(b"<STATUS_WORKER>")
             print("WORKER CONNECTED")
-            self.name = name
-    def Run(self):
         while True:
-            if self.connection[0].Recieve(1024).decode() == "<GIVE_STATUS>":
+            if self.connection.Recieve(1024).decode() == "<GIVE_STATUS>":
                 print("GIVING STATUS")
-                self.connection[0].Send(b"<OK_START>")
+                self.connection.Send(b"<OK_START>")
                 for i in range(10):
-                    if self.connection[0].Recieve(1024).decode() != "<PING>":
+                    if self.connection.Recieve(1024).decode() != "<PING>":
                         raise Exception("RECEIVED INCORRECT RESPONSE")
-                    self.connection[0].Send(b"<PONG>")
+                    self.connection.Send(b"<PONG>")
                 data = ""
                 while True:
-                    data = self.connection[0].Recieve(4096)
+                    data = self.connection.Recieve(4096)
                     if data[-5:] == b"<EOF>":
                         break
-                self.connection[0].Send(b"<OK_READY>")
+                self.connection.Send(b"<OK_READY>")
             else:
                 time.sleep(0.1)
