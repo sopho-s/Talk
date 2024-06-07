@@ -278,7 +278,6 @@ class MultiConnSingleInstructionServerWithCommandsWidgitHandling(MultiConnSingle
                                 statuswidgit.timetakenwidget.config(fg="#9e0000")
                     start = time.time()
                     client.SendFile(os.path.dirname(os.path.abspath(__file__)) + "\\Payload.csv")
-                    time.sleep(1)
                     client.Send(b"<EOF>")
                     if client.Recieve(1024).decode() != "<OK_READY>":
                         raise Exception("RECEIVED INCORRECT RESPONSE")
