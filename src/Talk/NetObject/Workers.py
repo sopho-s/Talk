@@ -43,7 +43,6 @@ class StatusWorkerServer(Worker):
 class StatusWorkerClient(Worker):
     def __init__(self, HOST, PORT, name):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            try:
                 while True:
                     try:
                         s.connect((HOST, PORT))
@@ -59,8 +58,6 @@ class StatusWorkerClient(Worker):
                 self.connection = Connection.Connection(s, HOST, name)
                 self.connection.SendAll(b"<STATUS_WORKER>")
                 print("WORKER CONNECTED")
-            except:
-                os._exit(1)
             self.name = name
     def Run(self):
         while True:
