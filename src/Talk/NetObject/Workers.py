@@ -50,21 +50,17 @@ class StatusWorkerClient(Worker):
                         break
                     except:
                         time.sleep(1)
-                print (name)
                 s.sendall(b"<CONNECTED>" + name.encode("utf-8"))
-                print("TEST4")
                 data = ""
                 while len(data) == 0:
                     data = s.recv(1024).decode()
                 if data != "<WELCOME " + name + ">":
                     raise Exception("SERVER DID NOT REPOND CORRECTLY, INSTEAD GOT: " + data)
-                print("TEST4")
                 s.sendall(b"<STATUS_WORKER>")
                 print("WORKER CONNECTED")
             except:
                 os._exit(1)
-            Connection.Connection(s, HOST, name)
-        super().__init__(connection)
+            super().__init__(Connection.Connection(s, HOST, name))
     def Run(self):
         self.connection.Send(b"<OK_START>")
         for i in range(10):
