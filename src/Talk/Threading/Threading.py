@@ -1,5 +1,4 @@
 import threading
-import sys
 
 def threaded(fn):
     def wrapper(*args, **kwargs):
@@ -11,7 +10,6 @@ def threaded(fn):
 def classthreaded(cls):
     def wrapper(*args, **kwargs):
         returnclass = cls(*args, **kwargs)
-        print(sys.getrefcount(returnclass.connection.connection))
         thread = threading.Thread(target=returnclass.Run)
         thread.start()
         return thread, returnclass
