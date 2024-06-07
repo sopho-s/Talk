@@ -61,7 +61,8 @@ class StatusWorkerClient(Worker):
         self.name = name
     def Run(self):
         while True:
-            if self.connection.Recieve(1024).decode() == "<GIVE_STATUS>":
+            msg = self.connection.Recieve(1024).decode()
+            if msg == "<GIVE_STATUS>":
                 print("GIVING STATUS")
                 self.connection.Send(b"<OK_START>")
                 for i in range(10):
@@ -74,5 +75,7 @@ class StatusWorkerClient(Worker):
                     if data[-5:] == b"<EOF>":
                         break
                 self.connection.Send(b"<OK_READY>")
+            elif msg == "<ONLINE?>":
+                self.connection.Send(b"<ONLINE>")
             else:
                 time.sleep(0.1)
