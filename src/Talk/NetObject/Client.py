@@ -1,4 +1,5 @@
 import socket
+import select
 import time
 from ..Command import Commands
 
@@ -83,13 +84,12 @@ class CommandClient:
                             s.sendall(b"<PONG>")
                         s.setblocking(False)
                         data = ""
+                        readlist, _, _ = select.select([s], [], [], 0)
                         while True:
-                            try:
+                            if readlist:
                                 data = s.recv(4096)
-                            except BlockingIOError:
-                                pass
-                            if data[-5:] == b"<EOF>":
-                                break
+                                if data[-5:] == b"<EOF>":
+                                    break
                         s.setblocking(True)
                         s.sendall(b"<OK_READY>")
             except KeyboardInterrupt:
