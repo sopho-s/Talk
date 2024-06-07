@@ -30,6 +30,5 @@ class Connection:
             count += 1
             self.connection.send(data.encode("utf-8"))
             data = file.read(4096)
-        self.connection.send("<EOF>")
     def EndConnection(self):
         self.connection.close()

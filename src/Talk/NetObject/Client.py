@@ -83,7 +83,7 @@ class CommandClient:
                             s.sendall(b"<PONG>")
                         while True:
                             data = s.recv(4096)
-                            if data != b"<EOF>":
+                            if not data:
                                 break
             except KeyboardInterrupt:
                 s.close()
