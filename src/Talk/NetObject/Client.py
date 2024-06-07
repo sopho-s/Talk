@@ -86,10 +86,9 @@ class CommandClient:
                         while True:
                             try:
                                 data = s.recv(4096)
-                                print(data[-5:])
                             except BlockingIOError:
                                 pass
-                            if data == b"<EOF>":
+                            if data[-5:] == b"<EOF>":
                                 break
                         s.setblocking(True)
                         s.sendall(b"<OK_READY>")
