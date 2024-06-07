@@ -56,7 +56,7 @@ class StatusWorkerClient(Worker):
             if data != "<WELCOME " + name + ">":
                 raise Exception("SERVER DID NOT REPOND CORRECTLY, INSTEAD GOT: " + data)
             self.connection = Connection.Connection(s, HOST, name)
-            self.connection.SendAll(b"<STATUS_WORKER>")
+            self.connection.Send(b"<STATUS_WORKER>")
             print("WORKER CONNECTED")
             self.name = name
     def Run(self):
