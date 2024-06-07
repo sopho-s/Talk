@@ -42,20 +42,25 @@ class StatusWorkerServer(Worker):
 @Threading.classthreaded
 class StatusWorkerClient(Worker):
     def __init__(self, HOST, PORT, name):
+        print("TEST1")
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
+                print("TEST2")
                 while True:
                     try:
                         s.connect((HOST, PORT))
                         break
                     except:
                         time.sleep(1)
+                print("TEST3")
                 s.sendall(b"<CONNECTED>" + name)
+                print("TEST4")
                 data = ""
                 while len(data) == 0:
                     data = s.recv(1024).decode()
                 if data != "<WELCOME " + name + ">":
                     raise Exception("SERVER DID NOT REPOND CORRECTLY, INSTEAD GOT: " + data)
+                print("TEST4")
                 s.sendall(b"<STATUS_WORKER>")
                 print("WORKER CONNECTED")
             except:
