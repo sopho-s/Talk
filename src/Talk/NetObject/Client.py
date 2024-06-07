@@ -84,7 +84,7 @@ class CommandClient:
                             s.sendall(b"<PONG>")
                         s.setblocking(False)
                         data = ""
-                        readlist, _, _ = select.select([s], [], [], 0)
+                        readlist, _, _ = select.select([s], [], [], 1)
                         while True:
                             if readlist:
                                 data = s.recv(4096)
