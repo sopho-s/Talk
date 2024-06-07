@@ -84,9 +84,10 @@ class CommandClient:
                         while True:
                             data = s.recv(4096)
                             if not data:
+                                print("DONE")
                                 break
+                            print("GOT")
                         s.sendall(b"<OK_READY>")
-                        print("DONE")
             except KeyboardInterrupt:
                 s.close()
             except ConnectionResetError:
