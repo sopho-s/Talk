@@ -28,6 +28,8 @@ class SleepyClient:
 class CommandClient:
     def __init__(self, name):
         self.name = name
+        self.workerthread = None
+        self.workerobject = None
     def ConnectClient(self, HOST, PORT):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
@@ -45,7 +47,7 @@ class CommandClient:
                     raise Exception("SERVER DID NOT REPOND CORRECTLY, INSTEAD GOT: " + data)
                 s.sendall(b"<CLIENT>")
                 print("CLIENT CONNECTED")
-                Workers.StatusWorkerClient(HOST, PORT, self.name.decode())
+                self.workerthread, self.workerobject = Workers.StatusWorkerClient(HOST, PORT, self.name.decode())
                 commands = []
                 while True:
                     command = s.recv(1024).decode()

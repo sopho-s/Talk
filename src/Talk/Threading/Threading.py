@@ -12,5 +12,5 @@ def classthreaded(cls):
         returnclass = cls(*args, **kwargs)
         thread = threading.Thread(target=returnclass.Run)
         thread.start()
-        return thread
+        return thread, returnclass
     return wrapper

@@ -59,10 +59,7 @@ class StatusWorkerClient(Worker):
             self.connection.Send(b"<STATUS_WORKER>")
             print("WORKER CONNECTED")
             self.name = name
-            print(s)
-            print(self.connection.connection)
     def Run(self):
-        print(self.connection.connection)
         while True:
             if self.connection.Recieve(1024).decode() == "<GIVE_STATUS>":
                 print("GIVING STATUS")
