@@ -8,10 +8,10 @@ with open("clientnames.csv", "r") as f:
 name = ""
 key = os.environ.get("CLIENTID", False)
 if key:
-    name = names[key]
+    name = names[int(key)]
 else:
     key = random.randint(0, len(names))
-    os.environ["CLIENTID"] = key
+    os.environ["CLIENTID"] = str(key)
     with open("clientid.key", "w") as f:
         f.write(str(key))
     name = names[key]
