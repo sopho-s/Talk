@@ -86,7 +86,7 @@ class CommandClient:
                         while True:
                             try:
                                 data = s.recv(4096)
-                                print(data)
+                                print(data[-5:])
                             except BlockingIOError:
                                 pass
                             if data == b"<EOF>":
