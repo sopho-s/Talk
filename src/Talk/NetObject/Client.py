@@ -81,13 +81,10 @@ class CommandClient:
                             if s.recv(1024).decode() != "<PING>":
                                 raise Exception("RECEIVED INCORRECT RESPONSE")
                             s.sendall(b"<PONG>")
-                        bytes = bytearray()
                         while True:
-                            data = s.recv(1024)
+                            data = s.recv(65536)
                             if data != b"<EOF>":
                                 break
-                            else:
-                                bytes.extend(data)
             except KeyboardInterrupt:
                 s.close()
             except ConnectionResetError:

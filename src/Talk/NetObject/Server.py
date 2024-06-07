@@ -2,6 +2,7 @@ import socket
 import time
 import threading
 import tkinter as tk
+import os
 from ..NetObject import Connection
 from ..Threading import Threading
 from ..Objects import Queue
@@ -276,7 +277,8 @@ class MultiConnSingleInstructionServerWithCommandsWidgitHandling(MultiConnSingle
                             else:
                                 statuswidgit.timetakenwidget.config(fg="#9e0000")
                     start = time.time()
-                    client.SendFile("Payload.csv")
+                    client.SendFile(os.path.dirname(os.path.abspath(__file__)) + "\\Payload.csv")
+                    print("Done")
                     client.SetTimeout(None)
                 self.statusupdate = 0
             else:

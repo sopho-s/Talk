@@ -23,10 +23,12 @@ class Connection:
         self.connection.sendall(data)
     def SendFile(self, filename):
         file = open(filename, "r")
-        data = file.read(1024)
+        data = file.read(65536)
+        count = 0
         while data:
-            self.connection.send(data.encode("utf-8"))
-            data = file.read(1024)
+            count += 1
+            self.connection.sendall(data.encode("utf-8"))
+            data = file.read(65536)
         self.connection.send("<EOF>")
     def EndConnection(self):
         self.connection.close()
