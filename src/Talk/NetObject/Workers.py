@@ -50,8 +50,8 @@ class StatusWorkerClient(Worker):
                         break
                     except:
                         time.sleep(1)
-                print("TEST")
-                s.sendall(b"<CONNECTED>" + name)
+                print (name)
+                s.sendall(b"<CONNECTED>" + name.encode("utf-8"))
                 print("TEST4")
                 data = ""
                 while len(data) == 0:

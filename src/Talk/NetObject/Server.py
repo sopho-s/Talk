@@ -184,7 +184,7 @@ class MCSICWHServer(MultiConnSingleInstructionServerWithCommands):
                     data = ""
                     while len(data) == 0:
                         data = conn.recv(1024).decode()
-                    print(data)
+                        print(data)
                     if data[0:11] == "<CONNECTED>":
                         objconn = Connection.Connection(conn, addr, data[11:])
                         objconn.Send(b"<WELCOME " + objconn.name.encode('utf-8') + b">")
