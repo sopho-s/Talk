@@ -2,6 +2,7 @@ import socket
 
 class Connection:
     def __init__(self, connection, address, name=""):
+        print(connection)
         self.connection = connection
         self.address = address
         self.name = name
