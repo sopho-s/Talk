@@ -55,24 +55,24 @@ class StatusWorkerClient(Worker):
                 data = s.recv(1024).decode()
             if data != "<WELCOME " + name + ">":
                 raise Exception("SERVER DID NOT REPOND CORRECTLY, INSTEAD GOT: " + data)
-            self.connection = Connection.Connection(s, HOST, name)
-            self.connection.Send(b"<STATUS_WORKER>")
+            self.connection = [Connection.Connection(s, HOST, name)]
+            self.connection[0].Send(b"<STATUS_WORKER>")
             print("WORKER CONNECTED")
             self.name = name
     def Run(self):
         while True:
-            if self.connection.Recieve(1024).decode() == "<GIVE_STATUS>":
+            if self.connection[0].Recieve(1024).decode() == "<GIVE_STATUS>":
                 print("GIVING STATUS")
-                self.connection.Send(b"<OK_START>")
+                self.connection[0].Send(b"<OK_START>")
                 for i in range(10):
-                    if self.connection.Recieve(1024).decode() != "<PING>":
+                    if self.connection[0].Recieve(1024).decode() != "<PING>":
                         raise Exception("RECEIVED INCORRECT RESPONSE")
-                    self.connection.Send(b"<PONG>")
+                    self.connection[0].Send(b"<PONG>")
                 data = ""
                 while True:
-                    data = self.connection.Recieve(4096)
+                    data = self.connection[0].Recieve(4096)
                     if data[-5:] == b"<EOF>":
                         break
-                self.connection.Send(b"<OK_READY>")
+                self.connection[0].Send(b"<OK_READY>")
             else:
                 time.sleep(0.1)
