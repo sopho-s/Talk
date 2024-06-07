@@ -52,8 +52,8 @@ class CommandClient:
                         print(f"RECIEVED {command}")
                         if command == "<END>" or command == "<END><END>":
                             s.sendall(b"<END_RECIEVED>")
-                            while command != "<START_JOB>":
-                                command = s.recv(1024).decode()
+                            if s.recv(1024).decode() != "<START_JOB>":
+                                raise Exception("RECEIVED INCORRECT RESPONSE")
                             Command = Commands.Command(commands)
                             try:
                                 while Command.RunNext():
@@ -64,12 +64,12 @@ class CommandClient:
                                 break
                             print("JOBDONE")
                             s.sendall(b"<DONE_JOB>")
-                            while s.recv(1024).decode() != "<GET_OUTPUT>":
-                                pass
+                            if s.recv(1024).decode() != "<GET_OUTPUT>":
+                                raise Exception("RECEIVED INCORRECT RESPONSE")
                             for command in Command.stdout:
                                 s.sendall(command.encode('utf-8'))
-                                while s.recv(1024).decode() != "<NEXT_OUTPUT>":
-                                    pass
+                                if s.recv(1024).decode() != "<NEXT_OUTPUT>":
+                                    raise Exception("RECEIVED INCORRECT RESPONSE")
                             s.sendall(b"<OUTPUT_DONE>")
                             commands = []
                         else:
@@ -78,8 +78,8 @@ class CommandClient:
                     else:
                         s.sendall(b"<OK_START>")
                         for i in range(10):
-                            while s.recv(1024).decode() != "<PING>":
-                                pass
+                            if s.recv(1024).decode() != "<PING>":
+                                raise Exception("RECEIVED INCORRECT RESPONSE")
                             print("<PING>")
                             print("<PONG>")
                             s.sendall(b"<PONG>")
