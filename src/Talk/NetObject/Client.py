@@ -80,8 +80,6 @@ class CommandClient:
                         for i in range(10):
                             if s.recv(1024).decode() != "<PING>":
                                 raise Exception("RECEIVED INCORRECT RESPONSE")
-                            print("<PING>")
-                            print("<PONG>")
                             s.sendall(b"<PONG>")
             except KeyboardInterrupt:
                 s.close()
