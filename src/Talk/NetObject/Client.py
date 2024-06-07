@@ -46,7 +46,6 @@ class CommandClient:
                 s.sendall(b"<CLIENT>")
                 print("CLIENT CONNECTED")
                 Workers.StatusWorkerClient(HOST, PORT, self.name.decode())
-                print("Hello")
                 commands = []
                 while True:
                     command = s.recv(1024).decode()
