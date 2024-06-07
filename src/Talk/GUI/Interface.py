@@ -25,7 +25,7 @@ def ShutdownServer(server, serverthread):
 
 def StartServer(root, button):
     global cServer
-    cServer = Server.MultiConnSingleInstructionServerWithCommandsWidgitHandling("10.101.1.59", 4245, root)
+    cServer = Server.MCSICWHServer("10.101.1.59", 4245, root)
     serverthread = None
     try:
         serverthread = cServer.StartServer()

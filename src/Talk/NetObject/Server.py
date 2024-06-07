@@ -4,18 +4,27 @@ import threading
 import tkinter as tk
 import os
 from ..NetObject import Connection
+from ..NetObject import Workers
 from ..Threading import Threading
 from ..Objects import Queue
 
 class StatusWidgit:
-    def __init__(self):
-        self.widgit = None
-        self.namewidgit = None
-        self.name = None
-        self.timetakenwidgit = None
-        self.timetaken = None
-        self.uploadspeedwidgit = None
+    def __init__(self, widgit, objconn):
+        self.ping = None
         self.uploadspeed = None
+        self.widgit = tk.Toplevel(widgit)
+        self.widgit.geometry("200x100")
+        self.name = objconn.name
+        self.namewidgit = tk.Label(self.widgit, text=objconn.name)
+        self.pingwidgit = tk.Label(self.widgit, text="")
+        self.uploadspeed = tk.Label(self.widgit, text="")
+        self.widgit.grid_columnconfigure(0, weight=1)
+        self.namewidgit.grid_columnconfigure(0, weight=1)
+        self.namewidgit.grid(row=0)
+        self.pingwidgit.grid(row=1)
+        self.uploadspeedwidgit.grid(row=2)
+        self.pingwidgit.grid_columnconfigure(1, weight=1)
+        self.uploadspeedwidgit.grid_columnconfigure(2, weight=1)
 
 class Server:
     def __init__(self, HOST, PORT):
@@ -154,14 +163,17 @@ class MultiConnSingleInstructionServerWithCommands(MultiConnServer):
             else:
                 time.sleep(0.2)
                     
-class MultiConnSingleInstructionServerWithCommandsWidgitHandling(MultiConnSingleInstructionServerWithCommands):
+class MCSICWHServer(MultiConnSingleInstructionServerWithCommands):
     def __init__(self, HOST, PORT, widgit):
         super().__init__(HOST, PORT)
         self.widgit = widgit
         self.statusupdate = False
         self.statuswidgits = []
+        self.statusworkers = []
+        self.statushandler = []
     @Threading.threaded
     def StartServer(self):
+        self.statushandler = self.StatusHandler()
         self.commandhandler = self.CommandHandler()
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
@@ -175,27 +187,15 @@ class MultiConnSingleInstructionServerWithCommandsWidgitHandling(MultiConnSingle
                     if data[0:11] == "<CONNECTED>":
                         objconn = Connection.Connection(conn, addr, data[11:])
                         objconn.Send(b"<WELCOME " + objconn.name.encode('utf-8') + b">")
-                        print("NEW CLIENT CONNECTED")
-                        self.connectionqueue.EnQueue(objconn)
-                        newstatuswidgit = StatusWidgit()
-                        clientwigit = tk.Toplevel(self.widgit)
-                        clientwigit.geometry("200x100")
-                        newstatuswidgit.name = objconn.name
-                        newstatuswidgit.widgit = clientwigit
-                        self.statuswidgits.append(newstatuswidgit)
-                        name = tk.Label(clientwigit, text=objconn.name)
-                        ping = tk.Label(clientwigit, text="")
-                        uploadspeed = tk.Label(clientwigit, text="")
-                        clientwigit.grid_columnconfigure(0, weight=1)
-                        name.grid_columnconfigure(0, weight=1)
-                        name.grid(row=0)
-                        ping.grid(row=1)
-                        uploadspeed.grid(row=2)
-                        ping.grid_columnconfigure(1, weight=1)
-                        uploadspeed.grid_columnconfigure(2, weight=1)
-                        newstatuswidgit.namewidgit = name
-                        newstatuswidgit.timetakenwidget = ping
-                        newstatuswidgit.uploadspeedwidgit = uploadspeed
+                        data = conn.recv(1024).decode()
+                        if data == "<CLIENT>":
+                            print("NEW CLIENT CONNECTED")
+                            self.connectionqueue.EnQueue(objconn)
+                            newstatuswidgit = StatusWidgit()
+                            self.statuswidgits.append(newstatuswidgit)
+                        elif data == "<STATUS_WORKER>":
+                            print("NEW STATUS WORKER CONNECTED")
+                            self.statusworkers.append(objconn)
                     else:
                         conn.sendall(b"CLIENT ATTEMPTED TO CONNECT TO A COMMAND SERVER WITHOUT COMMANDS, THUS CONNECTION WILL BE TERMINATED")
                         conn.close()  
@@ -254,48 +254,43 @@ class MultiConnSingleInstructionServerWithCommandsWidgitHandling(MultiConnSingle
                     if connection.Recieve() != "<JOB_QUIT>":
                         raise Exception("RECEIVED INCORRECT RESPONSE")
                     break
-            elif self.statusupdate:
-                for client in self.connectionqueue:
-                    client.Send(b"<GIVE_STATUS>")
-                    client.SetTimeout(10)
-                    if client.Recieve(1024).decode() != "<OK_START>":
-                        raise Exception("RECEIVED INCORRECT RESPONSE")
-                    total = 0
-                    for i in range(10):
-                        client.Send(b"<PING>")
-                        start = time.time()
-                        if client.Recieve(1024).decode() != "<PONG>":
-                            raise Exception("RECEIVED INCORRECT RESPONSE")
-                        total += (time.time() - start) / 10
-                    total *= 1000
+            else:
+                time.sleep(0.2)
+    @Threading.threaded
+    def StatusHandler(self):
+        while True:
+            if self.statusupdate:
+                for worker in self.statusworkers:
+                    ping, uploadspeed = worker.StatusRequest()
+                    currentwidgit = None
                     for statuswidgit in self.statuswidgits:
-                        if statuswidgit.name == client.name:
-                            statuswidgit.timetaken = total
-                            statuswidgit.timetakenwidget.config(text=f"Ping: " + ("%.0f" % total) + "ms")
-                            if total < 10:
-                                statuswidgit.timetakenwidget.config(fg="#00d100")
-                            elif total < 40:
-                                statuswidgit.timetakenwidget.config(fg="#99d100")
-                            elif total < 100:
-                                statuswidgit.timetakenwidget.config(fg="#e89f00")
-                            elif total < 1000:
-                                statuswidgit.timetakenwidget.config(fg="#ff2f00")
-                            else:
-                                statuswidgit.timetakenwidget.config(fg="#9e0000")
-                    start = time.time()
-                    client.SendFile(os.path.dirname(os.path.abspath(__file__)) + "\\Payload.csv")
-                    end = time.time() - start
-                    filestats = os.stat(os.path.dirname(os.path.abspath(__file__)) + "\\Payload.csv")
-                    uploadspeed = (filestats.st_size / (1024 * 1024)) / end
-                    statuswidgit.uploadspeed = uploadspeed
-                    statuswidgit.uploadspeedwidgit.config(text=f"Upload Speed: " + ("%.2g" % uploadspeed) + "MBs")
-                    '''if uploadspeed > 10:
-                        statuswidgit.uploadspeedwidgit = uploadspeed'''
-                    client.Send(b"<EOF>")
-                    if client.Recieve(1024).decode() != "<OK_READY>":
-                        raise Exception("RECEIVED INCORRECT RESPONSE")
-                    client.SetTimeout(None)
+                        if statuswidgit.name == worker.name:
+                            currentwidgit = statuswidgit
+                            break
+                    currentwidgit.ping = ping
+                    currentwidgit.pingwidget.config(text=f"Ping: " + ("%.0f" % ping) + "ms")
+                    if ping < 10:
+                        currentwidgit.pingwidget.config(fg="#00d100")
+                    elif ping < 40:
+                        currentwidgit.pingwidget.config(fg="#99d100")
+                    elif ping < 100:
+                        currentwidgit.pingwidget.config(fg="#e89f00")
+                    elif ping < 1000:
+                        currentwidgit.pingwidget.config(fg="#ff2f00")
+                    else:
+                        currentwidgit.pingwidget.config(fg="#9e0000")
+                    currentwidgit.uploadspeed = uploadspeed
+                    currentwidgit.uploadspeedwidgit.config(text=f"Upload Speed: " + ("%.2g" % uploadspeed) + "MBs")
+                    if uploadspeed < 0.1:
+                        currentwidgit.uploadspeedwidgit.config(fg="#9e0000")
+                    elif uploadspeed < 0.5:
+                        statuswidgit.uploadspeedwidgit.config(fg="#ff2f00")
+                    elif uploadspeed < 1:
+                        currentwidgit.uploadspeedwidgit.config(fg="#e89f00")
+                    elif uploadspeed < 5:
+                        currentwidgit.uploadspeedwidgit.config(fg="#99d100")
+                    else:
+                        currentwidgit.uploadspeedwidgit.config(fg="#00d100")
                 self.statusupdate = 0
             else:
                 time.sleep(0.2)
-                    

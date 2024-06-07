@@ -1,7 +1,8 @@
 import socket
-import select
 import time
+import os
 from ..Command import Commands
+from ..NetObject import Workers
 
 class Client:
     def __init__(self):
@@ -28,7 +29,6 @@ class CommandClient:
     def __init__(self, name):
         self.name = name
     def ConnectClient(self, HOST, PORT):
-        error = False
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
                 while True:
@@ -37,15 +37,14 @@ class CommandClient:
                         break
                     except:
                         time.sleep(1)
-                        print("WAITING")
-                print("CONNECTED")
                 s.sendall(b"<CONNECTED>" + self.name)
                 data = ""
                 while len(data) == 0:
                     data = s.recv(1024).decode()
                 if data != "<WELCOME " + self.name.decode() + ">":
-                    error = "SERVER DID NOT REPOND CORRECTLY, INSTEAD GOT: " + data
-                    raise Exception(error)
+                    raise Exception("SERVER DID NOT REPOND CORRECTLY, INSTEAD GOT: " + data)
+                s.sendall(b"<CLIENT>")
+                Workers.StatusWorkerClient(HOST, PORT, self.name.decode())
                 commands = []
                 while True:
                     command = s.recv(1024).decode()
@@ -62,7 +61,7 @@ class CommandClient:
                             except Exception:
                                 s.close()
                                 print("PERFORMING CLIENT RESET")
-                                break
+                                os._exit(1)
                             print("JOBDONE")
                             s.sendall(b"<DONE_JOB>")
                             if s.recv(1024).decode() != "<GET_OUTPUT>":
@@ -76,20 +75,8 @@ class CommandClient:
                         else:
                             s.sendall(b"<COMMAND_RECIEVED>")
                             commands.append(command)
-                    else:
-                        s.sendall(b"<OK_START>")
-                        for i in range(10):
-                            if s.recv(1024).decode() != "<PING>":
-                                raise Exception("RECEIVED INCORRECT RESPONSE")
-                            s.sendall(b"<PONG>")
-                        data = ""
-                        while True:
-                            data = s.recv(4096)
-                            if data[-5:] == b"<EOF>":
-                                break
-                        s.sendall(b"<OK_READY>")
             except KeyboardInterrupt:
-                s.close()
+                os._exit(1)
             except ConnectionResetError:
                 print("CONNECTION CLOSED")
-                raise Exception("STOP")
+                os._exit(1)

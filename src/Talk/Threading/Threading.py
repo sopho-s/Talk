@@ -6,3 +6,11 @@ def threaded(fn):
         thread.start()
         return thread
     return wrapper
+
+def classthreaded(cls):
+    def wrapper(*args, **kwargs):
+        returnclass = cls(*args, **kwargs)
+        thread = threading.Thread(target=returnclass.Run)
+        thread.start()
+        return thread
+    return wrapper
