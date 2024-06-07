@@ -44,6 +44,7 @@ class CommandClient:
                 if data != "<WELCOME " + self.name.decode() + ">":
                     raise Exception("SERVER DID NOT REPOND CORRECTLY, INSTEAD GOT: " + data)
                 s.sendall(b"<CLIENT>")
+                print("CLIENT CONNECTED")
                 Workers.StatusWorkerClient(HOST, PORT, self.name.decode())
                 commands = []
                 while True:

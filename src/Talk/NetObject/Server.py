@@ -17,7 +17,7 @@ class StatusWidgit:
         self.name = objconn.name
         self.namewidgit = tk.Label(self.widgit, text=objconn.name)
         self.pingwidgit = tk.Label(self.widgit, text="")
-        self.uploadspeed = tk.Label(self.widgit, text="")
+        self.uploadspeedwidgit = tk.Label(self.widgit, text="")
         self.widgit.grid_columnconfigure(0, weight=1)
         self.namewidgit.grid_columnconfigure(0, weight=1)
         self.namewidgit.grid(row=0)
@@ -191,7 +191,7 @@ class MCSICWHServer(MultiConnSingleInstructionServerWithCommands):
                         if data == "<CLIENT>":
                             print("NEW CLIENT CONNECTED")
                             self.connectionqueue.EnQueue(objconn)
-                            newstatuswidgit = StatusWidgit()
+                            newstatuswidgit = StatusWidgit(self.widgit, objconn)
                             self.statuswidgits.append(newstatuswidgit)
                         elif data == "<STATUS_WORKER>":
                             print("NEW STATUS WORKER CONNECTED")

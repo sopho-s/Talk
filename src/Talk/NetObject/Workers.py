@@ -57,6 +57,7 @@ class StatusWorkerClient(Worker):
                 if data != "<WELCOME " + name + ">":
                     raise Exception("SERVER DID NOT REPOND CORRECTLY, INSTEAD GOT: " + data)
                 s.sendall(b"<STATUS_WORKER>")
+                print("WORKER CONNECTED")
             except:
                 os._exit(1)
             Connection.Connection(s, HOST, name)
