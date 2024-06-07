@@ -10,6 +10,7 @@ def threaded(fn):
 def classthreaded(cls):
     def wrapper(*args, **kwargs):
         returnclass = cls(*args, **kwargs)
+        print(returnclass.connection.connection)
         thread = threading.Thread(target=returnclass.Run)
         thread.start()
         return thread, returnclass
