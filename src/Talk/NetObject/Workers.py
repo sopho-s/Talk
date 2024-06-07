@@ -64,6 +64,7 @@ class StatusWorkerClient(Worker):
     def Run(self):
         while True:
             if self.connection.Recieve(1024).decode() == "<GIVE_STATUS>":
+                print("GIVING STATUS")
                 self.connection.Send(b"<OK_START>")
                 for i in range(10):
                     if self.connection.Recieve(1024).decode() != "<PING>":
