@@ -48,6 +48,7 @@ class CommandClient:
                 s.sendall(b"<CLIENT>")
                 print("CLIENT CONNECTED")
                 self.workerthread, self.workerobject = Workers.StatusWorkerClient(HOST, PORT, self.name.decode())
+                print(sys.getrefcount(self.workerobject.connection.connection))
                 commands = []
                 while True:
                     command = s.recv(1024).decode()

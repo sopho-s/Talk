@@ -1,6 +1,7 @@
 import socket
 import time
 import os
+import sys
 from ..Threading import Threading
 from ..NetObject import Connection
 
@@ -58,8 +59,10 @@ class StatusWorkerClient(Worker):
             self.connection = Connection.Connection(s, HOST, name)
             self.connection.Send(b"<STATUS_WORKER>")
             print("WORKER CONNECTED")
+            print(sys.getrefcount(s))
             self.name = name
     def Run(self):
+        print(sys.getrefcount(self.connection.connection))
         while True:
             if self.connection.Recieve(1024).decode() == "<GIVE_STATUS>":
                 print("GIVING STATUS")
