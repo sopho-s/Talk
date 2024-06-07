@@ -24,10 +24,7 @@ class Connection:
     def SendFile(self, filename):
         file = open(filename, "r")
         data = file.read(4096)
-        count = 0
         while data:
-            print(count)
-            count += 1
             self.connection.sendall(data.encode("utf-8"))
             data = file.read(4096)
     def EndConnection(self):

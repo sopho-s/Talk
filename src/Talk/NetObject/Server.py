@@ -14,6 +14,8 @@ class StatusWidgit:
         self.name = None
         self.timetakenwidgit = None
         self.timetaken = None
+        self.uploadspeedwidgit = None
+        self.uploadspeed = None
 
 class Server:
     def __init__(self, HOST, PORT):
@@ -182,14 +184,18 @@ class MultiConnSingleInstructionServerWithCommandsWidgitHandling(MultiConnSingle
                         newstatuswidgit.widgit = clientwigit
                         self.statuswidgits.append(newstatuswidgit)
                         name = tk.Label(clientwigit, text=objconn.name)
-                        timetaken = tk.Label(clientwigit, text="")
+                        ping = tk.Label(clientwigit, text="")
+                        uploadspeed = tk.Label(clientwigit, text="")
                         clientwigit.grid_columnconfigure(0, weight=1)
                         name.grid_columnconfigure(0, weight=1)
                         name.grid(row=0)
-                        timetaken.grid(row=1)
-                        timetaken.grid_columnconfigure(1, weight=1)
+                        ping.grid(row=1)
+                        uploadspeed.grid(row=2)
+                        ping.grid_columnconfigure(1, weight=1)
+                        uploadspeed.grid_columnconfigure(2, weight=1)
                         newstatuswidgit.namewidgit = name
-                        newstatuswidgit.timetakenwidget = timetaken
+                        newstatuswidgit.timetakenwidget = ping
+                        newstatuswidgit.uploadspeedwidgit = uploadspeed
                     else:
                         conn.sendall(b"CLIENT ATTEMPTED TO CONNECT TO A COMMAND SERVER WITHOUT COMMANDS, THUS CONNECTION WILL BE TERMINATED")
                         conn.close()  
@@ -278,6 +284,13 @@ class MultiConnSingleInstructionServerWithCommandsWidgitHandling(MultiConnSingle
                                 statuswidgit.timetakenwidget.config(fg="#9e0000")
                     start = time.time()
                     client.SendFile(os.path.dirname(os.path.abspath(__file__)) + "\\Payload.csv")
+                    end = time.time() - start
+                    filestats = os.stat(os.path.dirname(os.path.abspath(__file__)) + "\\Payload.csv")
+                    uploadspeed = (filestats.st_size / (1024 * 1024)) / end
+                    statuswidgit.uploadspeed = uploadspeed
+                    statuswidgit.uploadspeedwidgit.config(text=f"Upload Speed: " + ("%.2g" % uploadspeed) + "MBs")
+                    '''if uploadspeed > 10:
+                        statuswidgit.uploadspeedwidgit = uploadspeed'''
                     client.Send(b"<EOF>")
                     if client.Recieve(1024).decode() != "<OK_READY>":
                         raise Exception("RECEIVED INCORRECT RESPONSE")
