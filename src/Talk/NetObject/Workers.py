@@ -63,7 +63,7 @@ class StatusWorkerClient(Worker):
             super().__init__(Connection.Connection(s, HOST, name))
     def Run(self):
         while True:
-            if self.connection.RecieveAll().decode() == "<GIVE_STATUS>":
+            if self.connection.Recieve(1024).decode() == "<GIVE_STATUS>":
                 self.connection.Send(b"<OK_START>")
                 for i in range(10):
                     if self.connection.Recieve(1024).decode() != "<PING>":
@@ -75,3 +75,5 @@ class StatusWorkerClient(Worker):
                     if data[-5:] == b"<EOF>":
                         break
                 self.connection.Send(b"<OK_READY>")
+            else:
+                time.sleep(0.1)

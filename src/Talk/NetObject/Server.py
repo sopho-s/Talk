@@ -261,6 +261,7 @@ class MCSICWHServer(MultiConnSingleInstructionServerWithCommands):
     def StatusHandler(self):
         while True:
             if self.statusupdate:
+                print("REQUESTING STATUS")
                 for worker in self.statusworkers:
                     ping, uploadspeed = worker.StatusRequest()
                     currentwidgit = None
