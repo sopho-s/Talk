@@ -43,21 +43,21 @@ class StatusWorkerServer(Worker):
 class StatusWorkerClient(Worker):
     def __init__(self, HOST, PORT, name):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                while True:
-                    try:
-                        s.connect((HOST, PORT))
-                        break
-                    except:
-                        time.sleep(1)
-                s.sendall(b"<CONNECTED>" + name.encode("utf-8"))
-                data = ""
-                while len(data) == 0:
-                    data = s.recv(1024).decode()
-                if data != "<WELCOME " + name + ">":
-                    raise Exception("SERVER DID NOT REPOND CORRECTLY, INSTEAD GOT: " + data)
-                self.connection = Connection.Connection(s, HOST, name)
-                self.connection.SendAll(b"<STATUS_WORKER>")
-                print("WORKER CONNECTED")
+            while True:
+                try:
+                    s.connect((HOST, PORT))
+                    break
+                except:
+                    time.sleep(1)
+            s.sendall(b"<CONNECTED>" + name.encode("utf-8"))
+            data = ""
+            while len(data) == 0:
+                data = s.recv(1024).decode()
+            if data != "<WELCOME " + name + ">":
+                raise Exception("SERVER DID NOT REPOND CORRECTLY, INSTEAD GOT: " + data)
+            self.connection = Connection.Connection(s, HOST, name)
+            self.connection.SendAll(b"<STATUS_WORKER>")
+            print("WORKER CONNECTED")
             self.name = name
     def Run(self):
         while True:
