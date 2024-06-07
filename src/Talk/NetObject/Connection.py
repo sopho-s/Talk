@@ -28,7 +28,7 @@ class Connection:
         while data:
             print(count)
             count += 1
-            self.connection.send(data.encode("utf-8"))
+            self.connection.sendall(data.encode("utf-8"))
             data = file.read(4096)
     def EndConnection(self):
         self.connection.close()

@@ -83,9 +83,8 @@ class CommandClient:
                             s.sendall(b"<PONG>")
                         s.settimeout(10)
                         while True:
-                            try:
-                                data = s.recv(4096)
-                            except:
+                            data = s.recv(4096)
+                            if not data:
                                 break
                             print("GOT")
                         s.sendall(b"<OK_READY>")
