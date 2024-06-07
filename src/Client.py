@@ -1,6 +1,7 @@
 import Talk.NetObject.Client
 import random
 import os.path
+from pathlib import Path
 
 
 with open("clientnames.csv", "r") as f:
@@ -11,6 +12,7 @@ if os.path.isfile("~/clientid.key"):
         name = names[int(f.read())]
 else:
     key = random.randint(0, len(names))
+    Path("~/clientid.key").touch()
     with open("~/clientid.key", "w") as f:
         f.write(str(key))
     name = names[key]
