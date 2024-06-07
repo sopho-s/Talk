@@ -8,11 +8,14 @@ class Connection:
         self.isbusy = False
         self.isonline = True
     def CheckOnline(self):
-        self.connection.sendall(b"<ONLINE?>")
-        data = self.connection.recv(1024)
-        if not data == "":
-            self.isonline = True
-            return True
+        try:
+            self.connection.sendall(b"<ONLINE?>")
+            data = self.connection.recv(1024)
+            if not data.decode() == "":
+                self.isonline = True
+                return True
+        except ConnectionAbortedError:
+            pass
         self.isonline = False
         return False
     def SetTimeout(self, timeout):

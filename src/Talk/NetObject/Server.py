@@ -12,19 +12,23 @@ class StatusWidgit:
     def __init__(self, widgit, objconn):
         self.ping = None
         self.uploadspeed = None
+        self.online = True
         self.widgit = tk.Toplevel(widgit)
         self.widgit.geometry("200x100")
         self.name = objconn.name
         self.namewidgit = tk.Label(self.widgit, text=objconn.name)
         self.pingwidgit = tk.Label(self.widgit, text="")
         self.uploadspeedwidgit = tk.Label(self.widgit, text="")
+        self.onlinewidgit = tk.Label(self.widgit, text="")
         self.widgit.grid_columnconfigure(0, weight=1)
         self.namewidgit.grid_columnconfigure(0, weight=1)
+        self.pingwidgit.grid_columnconfigure(1, weight=1)
+        self.uploadspeedwidgit.grid_columnconfigure(2, weight=1)
+        self.onlinewidgit.grid_columnconfigure(3, weight=1)
         self.namewidgit.grid(row=0)
         self.pingwidgit.grid(row=1)
         self.uploadspeedwidgit.grid(row=2)
-        self.pingwidgit.grid_columnconfigure(1, weight=1)
-        self.uploadspeedwidgit.grid_columnconfigure(2, weight=1)
+        self.onlinewidgit.grid(row=3)
 
 class Server:
     def __init__(self, HOST, PORT):
@@ -196,7 +200,13 @@ class MCSICWHServer(MultiConnSingleInstructionServerWithCommands):
                             self.statuswidgits.append(newstatuswidgit)
                         elif data == "<STATUS_WORKER>":
                             print("NEW STATUS WORKER CONNECTED")
-                            self.statusworkers.append(Workers.StatusWorkerServer(objconn))
+                            if not any(statuswidgit.name == objconn.name for statuswidgit in self.statuswidgits):
+                                self.statusworkers.append(Workers.StatusWorkerServer(objconn))
+                            else:
+                                for worker in self.statusworkers:
+                                    if worker.name == objconn.name:
+                                        worker.connection = objconn
+                            self.statusupdate = True
                     else:
                         conn.sendall(b"CLIENT ATTEMPTED TO CONNECT TO A COMMAND SERVER WITHOUT COMMANDS, THUS CONNECTION WILL BE TERMINATED")
                         conn.close()  
@@ -263,14 +273,20 @@ class MCSICWHServer(MultiConnSingleInstructionServerWithCommands):
             if self.statusupdate:
                 print("REQUESTING STATUS")
                 for worker in self.statusworkers:
-                    if not worker.connection.CheckOnline():
-                        continue
-                    ping, uploadspeed = worker.StatusRequest()
                     currentwidgit = None
                     for statuswidgit in self.statuswidgits:
                         if statuswidgit.name == worker.name:
                             currentwidgit = statuswidgit
                             break
+                    if not worker.connection.CheckOnline():
+                        currentwidgit.pingwidgit.config(text=f"Ping: 0ms")
+                        currentwidgit.uploadspeedwidgit.config(text=f"Upload Speed: 0MBs")
+                        currentwidgit.onlinewidgit.config(text=f"Offline")
+                        currentwidgit.onlinewidgit.config(fg="#9e0000")
+                        continue
+                    currentwidgit.onlinewidgit.config(text=f"Online")
+                    currentwidgit.onlinewidgit.config(fg="#00d100")
+                    ping, uploadspeed = worker.StatusRequest()
                     currentwidgit.ping = ping
                     currentwidgit.pingwidgit.config(text=f"Ping: " + ("%.0f" % ping) + "ms")
                     if ping < 10:
