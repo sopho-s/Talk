@@ -83,7 +83,10 @@ class CommandClient:
                             s.sendall(b"<PONG>")
                         s.setblocking(False)
                         while True:
-                            data = s.recv(4096)
+                            try:
+                                data = s.recv(4096)
+                            except BlockingIOError:
+                                pass
                             if not data:
                                 break
                             print("GOT")
