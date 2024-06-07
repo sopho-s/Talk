@@ -7,13 +7,13 @@ from pathlib import Path
 with open("clientnames.csv", "r") as f:
     names = f.read().split(",")
 name = ""
-if os.path.isfile("~/clientid.key"):
-    with open("~/clientid.key", "r") as f:
+if os.path.isfile(os.path.expanduser( '~' ) + "/clientid.key"):
+    with open(os.path.expanduser( '~' ) + "/clientid.key", "r") as f:
         name = names[int(f.read())]
 else:
     key = random.randint(0, len(names))
-    Path("~/clientid.key").touch()
-    with open("~/clientid.key", "w") as f:
+    Path(os.path.expanduser( '~' ) + "/clientid.key").touch()
+    with open(os.path.expanduser( '~' ) + "/clientid.key", "w") as f:
         f.write(str(key))
     name = names[key]
 Client = Talk.NetObject.Client.CommandClient(name.encode("utf-8"))
