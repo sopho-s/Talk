@@ -6,8 +6,6 @@ from ..NetObject import Connection
 
 class Worker:
     def __init__(self, connection):
-        self.host = None
-        self.address = None
         self.connection = connection
         self.name = connection.name
     def Run(self):
@@ -44,26 +42,27 @@ class StatusWorkerServer(Worker):
 @Threading.classthreaded
 class StatusWorkerClient(Worker):
     def __init__(self, HOST, PORT, name):
-        self.host = HOST
-        self.port = PORT
-        self.name = name
-    def Run(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             while True:
                 try:
-                    s.connect((self.host, self.port))
+                    s.connect((HOST, PORT))
                     break
                 except:
                     time.sleep(1)
-            s.sendall(b"<CONNECTED>" + self.name.encode("utf-8"))
+            s.sendall(b"<CONNECTED>" + name.encode("utf-8"))
             data = ""
             while len(data) == 0:
                 data = s.recv(1024).decode()
-            if data != "<WELCOME " + self.name + ">":
+            if data != "<WELCOME " + name + ">":
                 raise Exception("SERVER DID NOT REPOND CORRECTLY, INSTEAD GOT: " + data)
-            self.connection = Connection.Connection(s, self.host, self.name)
+            self.connection = Connection.Connection(s, HOST, name)
             self.connection.Send(b"<STATUS_WORKER>")
             print("WORKER CONNECTED")
+            self.name = name
+            print(s)
+            print(self.connection.connection)
+    def Run(self):
+        print(self.connection.connection)
         while True:
             if self.connection.Recieve(1024).decode() == "<GIVE_STATUS>":
                 print("GIVING STATUS")
