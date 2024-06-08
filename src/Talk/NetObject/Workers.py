@@ -3,7 +3,7 @@ import time
 import os
 from ..Threading import Threading
 from ..NetObject import Connection
-from ..Command import Command
+from ..Command import Commands
     
 
 class StatusWorkerServer:
@@ -93,7 +93,7 @@ class StatusWorkerClient:
             elif msg == "<ONLINE?>":
                 self.connection.Send(b"<ONLINE>")
             elif msg == "<UPDATE>":
-                Command = Command.Command(["git pull", "<RESET>"])
+                Command = Commands.Command(["git pull", "<RESET>"])
                 try:
                     while Command.RunNext():
                         pass
