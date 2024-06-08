@@ -19,7 +19,7 @@ if os.path.isfile(os.path.expanduser( '~' ) + "/clientid.key"):
         key = int(f.read())
         name = names[key]
 else:
-    key = random.randint(0, 2**64))
+    key = random.randint(0, 2**64)
     Path(os.path.expanduser( '~' ) + "/clientid.key").touch()
     with open(os.path.expanduser( '~' ) + "/clientid.key", "w") as f:
         f.write(str(key))
