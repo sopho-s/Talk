@@ -72,9 +72,9 @@ class Server:
                         elif data == "<STATUS_WORKER>":
                             print("NEW STATUS WORKER CONNECTED")
                             if not any(statuswidgit.name == objconn.name for statuswidgit in self.statuswidgits):
-                                self.statusworkers.append(Workers.StatusWorkerServer(objconn))
                                 newstatuswidgit = StatusWidgit(self.widgit, objconn)
                                 self.statuswidgits.append(newstatuswidgit)
+                                self.statusworkers.append(Workers.StatusWorkerServer(objconn))
                             else:
                                 for worker in self.statusworkers:
                                     if worker.name == objconn.name:
@@ -102,31 +102,28 @@ class Server:
                     for command in commands:
                         if command == "<UPDATE>":
                             connection.Send(b"git pull")
-                            if connection.Recieve(1024).decode() != "<COMMAND_RECIEVED>":
+                            if connection.Recieve(1024).decode("utf-8", "ignore") != "<COMMAND_RECIEVED>":
                                 raise Exception("RECEIVED INCORRECT RESPONSE")
                             connection.Send(b"<RESET>")
-                            if connection.Recieve(1024).decode() != "<COMMAND_RECIEVED>":
+                            if connection.Recieve(1024).decode("utf-8", "ignore") != "<COMMAND_RECIEVED>":
                                 raise Exception("RECEIVED INCORRECT RESPONSE")
                             shouldberestored = False
                         else:
                             connection.Send(command.encode("utf-8"))
-                            if connection.Recieve(1024).decode() != "<COMMAND_RECIEVED>":
+                            if connection.Recieve(1024).decode("utf-8", "ignore") != "<COMMAND_RECIEVED>":
                                 raise Exception("RECEIVED INCORRECT RESPONSE")
                     connection.Send(b"<END>")
-                    if connection.Recieve(1024).decode() != "<END_RECIEVED>":
+                    msg = connection.Recieve(1024).decode("utf-8", "ignore") 
+                    if msg != "<END_RECIEVED>":
                         raise Exception("RECEIVED INCORRECT RESPONSE")
                     connection.Send(b"<START_JOB>")
                     if shouldberestored:
-                        if connection.Recieve(1024).decode() != "<DONE_JOB>":
+                        if connection.Recieve(1024).decode("utf-8", "ignore") != "<DONE_JOB>":
                             raise Exception("RECEIVED INCORRECT RESPONSE")
                         connection.Send(b"<GET_OUTPUT>")
-                        output = connection.Recieve(1024).decode()
-                        count = 1
+                        output = connection.Recieve(1024).decode("utf-8", "ignore")
                         while output != "<OUTPUT_DONE>":
-                            print(f"COMMAND {count}:")
-                            count += 1
                             print(output)
-                            print("\n\n")
                             connection.Send(b"<NEXT_OUTPUT>")
                             output = connection.Recieve(1024)
                             output = output.decode("utf-8", "ignore")

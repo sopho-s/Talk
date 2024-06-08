@@ -53,6 +53,7 @@ class CommandClient:
                 while True:
                     command = s.recv(1024).decode()
                     print(f"RECIEVED {command}")
+                    print(len(command))
                     if command == "<END>" or command == "<END><END>":
                         self.isbusy = True
                         s.sendall(b"<END_RECIEVED>")
@@ -78,6 +79,7 @@ class CommandClient:
                                 raise Exception("RECEIVED INCORRECT RESPONSE")
                         s.sendall(b"<OUTPUT_DONE>")
                         commands = []
+                        self.isbusy = False
                     else:
                         s.sendall(b"<COMMAND_RECIEVED>")
                         commands.append(command)
