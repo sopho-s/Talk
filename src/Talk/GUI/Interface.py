@@ -25,10 +25,11 @@ def ShutdownServer(server, serverthread):
     print("SHUTTING DOWN")
     os._exit(1)
 
-def StartServer(root, button):
+def StartServer(root, button, key):
     global cServer
-    cServer = Server.Server("10.101.1.59", 4245, root)
+    cServer = Server.Server("10.101.1.59", 4245, root, key)
     serverthread = cServer.StartServer()
+    print(cServer.key)
     commands = tk.Text(root, height = 5, width = 52)
     update = tk.Button(root, width=20, height=2, text='Update', command=lambda: Update(cServer))
     submit = tk.Button(root, width=20, height=2, text='Submit', command=lambda: SubmitCommands(commands, cServer))
@@ -39,9 +40,9 @@ def StartServer(root, button):
     submit.pack()
     shutdown.pack()
     
-def main():
+def main(key = None):
     root = tk.Tk()
-    button = tk.Button(root, text='Start Server', width=40, height=4, command=lambda: StartServer(root, button))
+    button = tk.Button(root, text='Start Server', width=40, height=4, command=lambda: StartServer(root, button, key))
     button.pack_forget()
     button.pack()
     root.mainloop()

@@ -34,7 +34,7 @@ class StatusWidgit:
         self.onlinewidgit.grid(row=3)
         self.busywidgit.grid(row=4)
 class Server:
-    def __init__(self, HOST, PORT, widgit):
+    def __init__(self, HOST, PORT, widgit, key=None):
         self.HOST = HOST
         self.PORT = PORT
         self.widgit = widgit
