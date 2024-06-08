@@ -3,6 +3,7 @@ import time
 import os
 from ..Threading import Threading
 from ..NetObject import Connection
+from ..Command import Command
     
 
 class StatusWorkerServer:
@@ -91,5 +92,13 @@ class StatusWorkerClient:
                     self.connection.Send(b"<IDLE>")
             elif msg == "<ONLINE?>":
                 self.connection.Send(b"<ONLINE>")
+            elif msg == "<UPDATE>":
+                Command = Command.Command(["git pull", "<RESET>"])
+                try:
+                    while Command.RunNext():
+                        pass
+                except Exception:
+                    print("PERFORMING CLIENT RESET")
+                    os._exit(1)
             else:
                 time.sleep(0.1)
