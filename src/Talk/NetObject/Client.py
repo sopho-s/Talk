@@ -26,11 +26,12 @@ class SleepyClient:
                 s.close()
 
 class CommandClient:
-    def __init__(self, name):
+    def __init__(self, name, commands):
         self.name = name
         self.workerthread = None
         self.workerobject = None
         self.isbusy = None
+        self.commands = commands
     def ConnectClient(self, HOST, PORT):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
@@ -58,7 +59,7 @@ class CommandClient:
                         s.sendall(b"<END_RECIEVED>")
                         if s.recv(1024).decode() != "<START_JOB>":
                             raise Exception("RECEIVED INCORRECT RESPONSE")
-                        Command = Commands.Command(commands)
+                        Command = Commands.Command(commands, self.commands)
                         try:
                             while Command.RunNext():
                                 pass
