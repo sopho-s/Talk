@@ -13,14 +13,16 @@ commands = ""
 with open("Commands.json", "r") as f:
     commands = json.loads(f.read())
 name = ""
+key = 0
 if os.path.isfile(os.path.expanduser( '~' ) + "/clientid.key"):
     with open(os.path.expanduser( '~' ) + "/clientid.key", "r") as f:
-        name = names[int(f.read())]
+        key = int(f.read())
+        name = names[key]
 else:
     key = random.randint(0, len(names))
     Path(os.path.expanduser( '~' ) + "/clientid.key").touch()
     with open(os.path.expanduser( '~' ) + "/clientid.key", "w") as f:
         f.write(str(key))
     name = names[key]
-Client = C.CommandClient(name.encode("utf-8"), commands)
+Client = C.CommandClient(name.encode("utf-8"), commands, key)
 Client.ConnectClient("10.101.1.59", 4245)

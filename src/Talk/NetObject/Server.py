@@ -50,6 +50,8 @@ class Server:
         self.update = False
         self.shutdown = False
         self.printlock = threading.Lock()
+        self.acceptall = False
+        self.connectedids = []
     def AddUser(self, type, connection):
         if type == "<CLIENT>":
             print("NEW CLIENT CONNECTED")
@@ -83,6 +85,10 @@ class Server:
                         objconn = Connection.Connection(conn, addr, data[11:])
                         objconn.Send(b"<WELCOME " + objconn.name.encode('utf-8') + b">")
                         data = conn.recv(1024).decode()
+                        print(self.acceptall)
+                        if self.acceptall:
+                            objconn.Send(b"<VALID>")
+                        data = conn.recv(1024).decode()   
                         self.AddUser(data, objconn)
                     else:
                         conn.sendall(b"CLIENT ATTEMPTED TO CONNECT TO A COMMAND SERVER WITHOUT COMMANDS, THUS CONNECTION WILL BE TERMINATED")
