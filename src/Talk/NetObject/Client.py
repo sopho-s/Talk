@@ -48,7 +48,7 @@ class CommandClient:
                     data = s.recv(1024).decode()
                 if data != "<WELCOME " + self.name.decode() + ">":
                     raise Exception("SERVER DID NOT REPOND CORRECTLY, INSTEAD GOT: " + data)
-                s.sendall(str(self.id).encode("utf-8"))
+                s.sendall(str(self.id))
                 if s.recv(1024).decode() != "<VALID>":
                     raise Exception("RECEIVED INCORRECT RESPONSE")
                 s.sendall(b"<CLIENT>")
