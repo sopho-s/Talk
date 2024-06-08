@@ -36,12 +36,14 @@ class StatusWorkerServer:
             uploadspeed = (filestats.st_size / (1024 * 1024)) / end
             self.connection.Send(b"<EOF>")
             msg = self.connection.Recieve(1024).decode()
-            if msg != "<OK_READY>":
-                if msg == "":
-                    raise ConnectionResetError()
-                raise Exception("RECEIVED INCORRECT RESPONSE")
             self.connection.SetTimeout(None)
-            return total, uploadspeed, True
+            if msg == "<BUSY>":
+                return total, uploadspeed, True, True
+            if msg == "<IDLE>":
+                return total, uploadspeed, True, False
+            elif msg == "":
+                raise ConnectionResetError()
+            raise Exception("RECEIVED INCORRECT RESPONSE")
         except ConnectionResetError:
             return 0, 0, False
             
@@ -86,10 +88,6 @@ class StatusWorkerClient:
                     self.connection.Send(b"<BUSY>")
                 else:
                     self.connection.Send(b"<IDLE>")
-                data = self.connection.Recieve(4096)
-                if self.connection.Recieve(1024).decode() != "<OK_THANKS>":
-                    raise Exception("RECEIVED INCORRECT RESPONSE")
-                
             elif msg == "<ONLINE?>":
                 self.connection.Send(b"<ONLINE>")
             else:

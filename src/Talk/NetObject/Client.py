@@ -72,7 +72,9 @@ class CommandClient:
                             raise Exception("RECEIVED INCORRECT RESPONSE")
                         for command in Command.stdout:
                             s.sendall(command.encode('utf-8'))
-                            if s.recv(1024).decode() != "<NEXT_OUTPUT>":
+                            msg = s.recv(1024).decode()
+                            print(msg)
+                            if msg != "<NEXT_OUTPUT>":
                                 raise Exception("RECEIVED INCORRECT RESPONSE")
                         s.sendall(b"<OUTPUT_DONE>")
                         commands = []

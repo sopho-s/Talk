@@ -13,6 +13,7 @@ class StatusWidgit:
         self.ping = None
         self.uploadspeed = None
         self.online = True
+        self.busy = True
         self.widgit = tk.Toplevel(widgit)
         self.widgit.geometry("200x100")
         self.name = objconn.name
@@ -20,15 +21,18 @@ class StatusWidgit:
         self.pingwidgit = tk.Label(self.widgit, text="")
         self.uploadspeedwidgit = tk.Label(self.widgit, text="")
         self.onlinewidgit = tk.Label(self.widgit, text="")
+        self.busywidgit = tk.Label(self.widgit, text="")
         self.widgit.grid_columnconfigure(0, weight=1)
         self.namewidgit.grid_columnconfigure(0, weight=1)
         self.pingwidgit.grid_columnconfigure(1, weight=1)
         self.uploadspeedwidgit.grid_columnconfigure(2, weight=1)
         self.onlinewidgit.grid_columnconfigure(3, weight=1)
+        self.busywidgit.grid_columnconfigure(4, weight=1)
         self.namewidgit.grid(row=0)
         self.pingwidgit.grid(row=1)
         self.uploadspeedwidgit.grid(row=2)
         self.onlinewidgit.grid(row=3)
+        self.busywidgit.grid(row=4)
 class Server:
     def __init__(self, HOST, PORT, widgit):
         self.HOST = HOST
@@ -124,7 +128,8 @@ class Server:
                             print(output)
                             print("\n\n")
                             connection.Send(b"<NEXT_OUTPUT>")
-                            output = connection.Recieve(1024).decode()
+                            output = connection.Recieve(1024)
+                            output = output.decode("utf-8", "ignore")
                         connection = self.connectionqueue.EnQueue(connection)
                 except KeyboardInterrupt:
                     connection.Send(b"<STOP_JOB>")
@@ -155,7 +160,7 @@ class Server:
                         continue
                     currentwidgit.onlinewidgit.config(text=f"Online")
                     currentwidgit.onlinewidgit.config(fg="#00d100")
-                    ping, uploadspeed, online = worker.StatusRequest()
+                    ping, uploadspeed, online, isbusy = worker.StatusRequest()
                     if not online:
                         currentwidgit.pingwidgit.config(text=f"Ping: 0ms")
                         currentwidgit.uploadspeedwidgit.config(text=f"Upload Speed: 0MBs")
@@ -186,6 +191,13 @@ class Server:
                         currentwidgit.uploadspeedwidgit.config(fg="#99d100")
                     else:
                         currentwidgit.uploadspeedwidgit.config(fg="#00d100")
+                    currentwidgit.busy = isbusy
+                    if isbusy:
+                        currentwidgit.busywidgit.config(text=f"Busy")
+                        currentwidgit.busywidgit.config(fg="#e89f00")
+                    else:
+                        currentwidgit.busywidgit.config(text=f"Idle")
+                        currentwidgit.busywidgit.config(fg="#00d100")
                 self.statusupdate = False
             else:
                 time.sleep(0.5)
