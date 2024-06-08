@@ -53,9 +53,7 @@ class CommandClient:
                 while True:
                     command = s.recv(1024).decode()
                     print(f"RECIEVED {command}")
-                    print(len(command))
                     if command == "<END>" or command == "<END><END>":
-                        print("GOOD")
                         self.isbusy = True
                         s.sendall(b"<END_RECIEVED>")
                         if s.recv(1024).decode() != "<START_JOB>":
@@ -83,7 +81,6 @@ class CommandClient:
                         self.isbusy = False
                     elif command != "<NEXT_OUTPUT>":
                         s.sendall(b"<COMMAND_RECIEVED>")
-                        print("NOT GOOD")
                         commands.append(command)
             except KeyboardInterrupt:
                 os._exit(1)

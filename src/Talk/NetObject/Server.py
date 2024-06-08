@@ -123,7 +123,7 @@ class Server:
                         connection.Send(b"<GET_OUTPUT>")
                         output = connection.Recieve(1024).decode("utf-8", "ignore")
                         while output != "<OUTPUT_DONE>":
-                            print(output)
+                            print(output, flush="")
                             connection.Send(b"<NEXT_OUTPUT>")
                             output = connection.Recieve(1024)
                             output = output.decode("utf-8", "ignore")
