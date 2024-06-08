@@ -186,7 +186,7 @@ class Server:
         else:
             currentwidgit.pingwidgit.config(fg="#9e0000")
         currentwidgit.uploadspeed = uploadspeed
-        currentwidgit.uploadspeedwidgit.config(text=f"Upload Speed: " + ("%.2g" % uploadspeed) + "MBs")
+        currentwidgit.uploadspeedwidgit.config(text=f"Upload Speed: " + ("%.1f" % uploadspeed) + "MBs")
         if uploadspeed < 0.1:
             currentwidgit.uploadspeedwidgit.config(fg="#9e0000")
         elif uploadspeed < 0.5:
