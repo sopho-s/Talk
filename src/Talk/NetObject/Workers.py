@@ -20,7 +20,7 @@ class StatusWorkerServer:
     def StatusRequest(self):
         try:
             self.connection.Send(b"<GIVE_STATUS>")
-            self.connection.SetTimeout(10)
+            self.connection.SetTimeout(2)
             msg = self.connection.Recieve(1024).decode()
             if msg != "<OK_START>":
                 if msg == "":
