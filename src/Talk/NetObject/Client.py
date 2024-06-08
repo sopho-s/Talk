@@ -73,7 +73,7 @@ class CommandClient:
                         for command in Command.stdout:
                             s.sendall(command.encode('utf-8'))
                             msg = s.recv(1024).decode()
-                            print(msg)
+                            print(len(Command.stdout))
                             if msg != "<NEXT_OUTPUT>":
                                 raise Exception("RECEIVED INCORRECT RESPONSE")
                         s.sendall(b"<OUTPUT_DONE>")

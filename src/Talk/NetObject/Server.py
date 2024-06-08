@@ -42,6 +42,7 @@ class Server:
         self.statuswidgits = []
         self.statusworkers = []
         self.statushandler = []
+        self.users = []
         self.commands = []
         self.commandlock = threading.Lock()
         self.commandhandler = None
@@ -49,6 +50,21 @@ class Server:
         self.update = False
         self.shutdown = False
         self.printlock = threading.Lock()
+    def AddUser(self, type, connection):
+        if type == "<CLIENT>":
+            print("NEW CLIENT CONNECTED")
+            self.connectionqueue.EnQueue(connection)
+        elif type == "<STATUS_WORKER>":
+            print("NEW STATUS WORKER CONNECTED")
+            if not any(statuswidgit.name == connection.name for statuswidgit in self.statuswidgits):
+                newstatuswidgit = StatusWidgit(self.widgit, connection)
+                self.statuswidgits.append(newstatuswidgit)
+                self.statusworkers.append(Workers.StatusWorkerServer(connection))
+            else:
+                for worker in self.statusworkers:
+                    if worker.name == connection.name:
+                        worker.connection = connection
+            self.statusupdate = True
     @Threading.threaded
     def StartServer(self):
         self.statushandler = self.StatusHandler()
@@ -67,20 +83,7 @@ class Server:
                         objconn = Connection.Connection(conn, addr, data[11:])
                         objconn.Send(b"<WELCOME " + objconn.name.encode('utf-8') + b">")
                         data = conn.recv(1024).decode()
-                        if data == "<CLIENT>":
-                            print("NEW CLIENT CONNECTED")
-                            self.connectionqueue.EnQueue(objconn)
-                        elif data == "<STATUS_WORKER>":
-                            print("NEW STATUS WORKER CONNECTED")
-                            if not any(statuswidgit.name == objconn.name for statuswidgit in self.statuswidgits):
-                                newstatuswidgit = StatusWidgit(self.widgit, objconn)
-                                self.statuswidgits.append(newstatuswidgit)
-                                self.statusworkers.append(Workers.StatusWorkerServer(objconn))
-                            else:
-                                for worker in self.statusworkers:
-                                    if worker.name == objconn.name:
-                                        worker.connection = objconn
-                            self.statusupdate = True
+                        self.AddUser(data, objconn)
                     else:
                         conn.sendall(b"CLIENT ATTEMPTED TO CONNECT TO A COMMAND SERVER WITHOUT COMMANDS, THUS CONNECTION WILL BE TERMINATED")
                         conn.close()  
@@ -124,7 +127,7 @@ class Server:
                         raise Exception("RECEIVED INCORRECT RESPONSE")
                     connection.Send(b"<START_JOB>")
                     if shouldberestored:
-                        self.SubmitCommand(connection)
+                        self.RecieveCommand(connection)
                 except KeyboardInterrupt:
                     connection.Send(b"<STOP_JOB>")
                     if connection.Recieve() != "<JOB_STOPPED>":
@@ -150,53 +153,50 @@ class Server:
                         if statuswidgit.name == worker.name:
                             currentwidgit = statuswidgit
                             break
-                    if not worker.connection.CheckOnline():
-                        currentwidgit.pingwidgit.config(text=f"Ping: 0ms")
-                        currentwidgit.uploadspeedwidgit.config(text=f"Upload Speed: 0MBs")
-                        currentwidgit.onlinewidgit.config(text=f"Offline")
-                        currentwidgit.onlinewidgit.config(fg="#9e0000")
-                        continue
-                    currentwidgit.onlinewidgit.config(text=f"Online")
-                    currentwidgit.onlinewidgit.config(fg="#00d100")
                     ping, uploadspeed, online, isbusy = worker.StatusRequest()
-                    if not online:
-                        currentwidgit.pingwidgit.config(text=f"Ping: 0ms")
-                        currentwidgit.uploadspeedwidgit.config(text=f"Upload Speed: 0MBs")
-                        currentwidgit.onlinewidgit.config(text=f"Offline")
-                        currentwidgit.onlinewidgit.config(fg="#9e0000")
-                        continue
-                    currentwidgit.ping = ping
-                    currentwidgit.pingwidgit.config(text=f"Ping: " + ("%.0f" % ping) + "ms")
-                    if ping < 10:
-                        currentwidgit.pingwidgit.config(fg="#00d100")
-                    elif ping < 40:
-                        currentwidgit.pingwidgit.config(fg="#99d100")
-                    elif ping < 100:
-                        currentwidgit.pingwidgit.config(fg="#e89f00")
-                    elif ping < 1000:
-                        currentwidgit.pingwidgit.config(fg="#ff2f00")
-                    else:
-                        currentwidgit.pingwidgit.config(fg="#9e0000")
-                    currentwidgit.uploadspeed = uploadspeed
-                    currentwidgit.uploadspeedwidgit.config(text=f"Upload Speed: " + ("%.2g" % uploadspeed) + "MBs")
-                    if uploadspeed < 0.1:
-                        currentwidgit.uploadspeedwidgit.config(fg="#9e0000")
-                    elif uploadspeed < 0.5:
-                        statuswidgit.uploadspeedwidgit.config(fg="#ff2f00")
-                    elif uploadspeed < 1:
-                        currentwidgit.uploadspeedwidgit.config(fg="#e89f00")
-                    elif uploadspeed < 5:
-                        currentwidgit.uploadspeedwidgit.config(fg="#99d100")
-                    else:
-                        currentwidgit.uploadspeedwidgit.config(fg="#00d100")
-                    currentwidgit.busy = isbusy
-                    if isbusy:
-                        currentwidgit.busywidgit.config(text=f"Busy")
-                        currentwidgit.busywidgit.config(fg="#e89f00")
-                    else:
-                        currentwidgit.busywidgit.config(text=f"Idle")
-                        currentwidgit.busywidgit.config(fg="#00d100")
+                    self.UpdateStatusWidgit(currentwidgit, ping, uploadspeed, online, isbusy)
                 self.statusupdate = False
             else:
                 time.sleep(0.5)
                 self.statusupdate = True
+    def UpdateStatusWidgit(self, currentwidgit, ping, uploadspeed, online, isbusy):
+        if not online:
+            currentwidgit.pingwidgit.config(text=f"Ping: 0ms")
+            currentwidgit.uploadspeedwidgit.config(text=f"Upload Speed: 0MBs")
+            currentwidgit.onlinewidgit.config(text=f"Offline")
+            currentwidgit.onlinewidgit.config(fg="#9e0000")
+            return
+        else:
+            currentwidgit.onlinewidgit.config(text=f"Online")
+            currentwidgit.onlinewidgit.config(fg="#00d100")
+        currentwidgit.ping = ping
+        currentwidgit.pingwidgit.config(text=f"Ping: " + ("%.0f" % ping) + "ms")
+        if ping < 10:
+            currentwidgit.pingwidgit.config(fg="#00d100")
+        elif ping < 40:
+            currentwidgit.pingwidgit.config(fg="#99d100")
+        elif ping < 100:
+            currentwidgit.pingwidgit.config(fg="#e89f00")
+        elif ping < 1000:
+            currentwidgit.pingwidgit.config(fg="#ff2f00")
+        else:
+            currentwidgit.pingwidgit.config(fg="#9e0000")
+        currentwidgit.uploadspeed = uploadspeed
+        currentwidgit.uploadspeedwidgit.config(text=f"Upload Speed: " + ("%.2g" % uploadspeed) + "MBs")
+        if uploadspeed < 0.1:
+            currentwidgit.uploadspeedwidgit.config(fg="#9e0000")
+        elif uploadspeed < 0.5:
+            currentwidgit.uploadspeedwidgit.config(fg="#ff2f00")
+        elif uploadspeed < 1:
+            currentwidgit.uploadspeedwidgit.config(fg="#e89f00")
+        elif uploadspeed < 5:
+            currentwidgit.uploadspeedwidgit.config(fg="#99d100")
+        else:
+            currentwidgit.uploadspeedwidgit.config(fg="#00d100")
+        currentwidgit.busy = isbusy
+        if isbusy:
+            currentwidgit.busywidgit.config(text=f"Busy")
+            currentwidgit.busywidgit.config(fg="#e89f00")
+        else:
+            currentwidgit.busywidgit.config(text=f"Idle")
+            currentwidgit.busywidgit.config(fg="#00d100")
