@@ -19,10 +19,10 @@ if os.path.isfile(os.path.expanduser( '~' ) + "/clientid.key"):
         key = int(f.read())
         name = names[key]
 else:
-    key = random.randint(0, len(names))
+    key = random.randint(0, 2**64))
     Path(os.path.expanduser( '~' ) + "/clientid.key").touch()
     with open(os.path.expanduser( '~' ) + "/clientid.key", "w") as f:
         f.write(str(key))
-    name = names[key]
+    name = names[key % len(names)]
 Client = C.CommandClient(name.encode("utf-8"), commands, key)
 Client.ConnectClient("10.101.1.59", 4245)
