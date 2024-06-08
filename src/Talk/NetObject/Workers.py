@@ -60,8 +60,9 @@ class StatusWorkerServer:
 
 @Threading.classthreaded
 class StatusWorkerClient:
-    def __init__(self, HOST, PORT, name, client, commandlist):
+    def __init__(self, HOST, PORT, name, id, client, commandlist):
         self.client = client
+        self.id = id
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         while True:
             try:
@@ -76,6 +77,9 @@ class StatusWorkerClient:
         if data != "<WELCOME " + name + ">":
             raise Exception("SERVER DID NOT REPOND CORRECTLY, INSTEAD GOT: " + data)
         self.connection = Connection.Connection(s, HOST, name)
+        self.connection.Send(str(id).endcode("utf-8"))
+        if self.connection.Recieve(1024).decode() != "<VALID>":
+            raise Exception("RECEIVED INCORRECT RESPONSE")
         self.connection.Send(b"<STATUS_WORKER>")
         print("WORKER CONNECTED")
         self.name = name
