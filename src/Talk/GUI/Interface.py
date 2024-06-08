@@ -1,4 +1,8 @@
-import tkinter as tk
+try:
+    import Tkinter as tk
+except ModuleNotFoundError:
+    import tkinter as tk
+    
 import os
 from ..NetObject import Server
 
