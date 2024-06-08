@@ -3,45 +3,53 @@ import time
 import os
 from ..Threading import Threading
 from ..NetObject import Connection
+    
 
-class Worker:
+class StatusWorkerServer:
     def __init__(self, connection):
         self.connection = connection
         self.name = connection.name
-    def Run(self):
-        pass
-    
-
-class StatusWorkerServer(Worker):
-    def __init__(self, connection):
-        super().__init__(connection)
     def StatusRequest(self):
-        self.connection.Send(b"<GIVE_STATUS>")
-        self.connection.SetTimeout(10)
-        if self.connection.Recieve(1024).decode() != "<OK_START>":
-            raise Exception("RECEIVED INCORRECT RESPONSE")
-        total = 0
-        for i in range(10):
-            self.connection.Send(b"<PING>")
-            start = time.time()
-            if self.connection.Recieve(1024).decode() != "<PONG>":
+        try:
+            self.connection.Send(b"<GIVE_STATUS>")
+            self.connection.SetTimeout(10)
+            msg = self.connection.Recieve(1024).decode()
+            if msg != "<OK_START>":
+                if msg == "":
+                    raise ConnectionResetError()
                 raise Exception("RECEIVED INCORRECT RESPONSE")
-            total += (time.time() - start) / 10
-        total *= 1000
-        start = time.time()
-        self.connection.SendFile(os.path.dirname(os.path.abspath(__file__)) + "\\Payload.csv")
-        end = time.time() - start
-        filestats = os.stat(os.path.dirname(os.path.abspath(__file__)) + "\\Payload.csv")
-        uploadspeed = (filestats.st_size / (1024 * 1024)) / end
-        self.connection.Send(b"<EOF>")
-        if self.connection.Recieve(1024).decode() != "<OK_READY>":
-            raise Exception("RECEIVED INCORRECT RESPONSE")
-        self.connection.SetTimeout(None)
-        return total, uploadspeed
+            total = 0
+            for i in range(10):
+                self.connection.Send(b"<PING>")
+                start = time.time()
+                msg = self.connection.Recieve(1024).decode()
+                if msg != "<PONG>":
+                    if msg == "":
+                        raise ConnectionResetError()
+                    raise Exception("RECEIVED INCORRECT RESPONSE")
+                total += (time.time() - start) / 10
+            total *= 1000
+            start = time.time()
+            self.connection.SendFile(os.path.dirname(os.path.abspath(__file__)) + "\\Payload.csv")
+            end = time.time() - start
+            filestats = os.stat(os.path.dirname(os.path.abspath(__file__)) + "\\Payload.csv")
+            uploadspeed = (filestats.st_size / (1024 * 1024)) / end
+            self.connection.Send(b"<EOF>")
+            msg = self.connection.Recieve(1024).decode()
+            if msg != "<OK_READY>":
+                if msg == "":
+                    raise ConnectionResetError()
+                raise Exception("RECEIVED INCORRECT RESPONSE")
+            self.connection.SetTimeout(None)
+            return total, uploadspeed, True
+        except ConnectionResetError:
+            return 0, 0, False
+            
 
 @Threading.classthreaded
-class StatusWorkerClient(Worker):
-    def __init__(self, HOST, PORT, name):
+class StatusWorkerClient:
+    def __init__(self, HOST, PORT, name, client):
+        self.client = client
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         while True:
             try:

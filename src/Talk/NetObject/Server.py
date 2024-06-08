@@ -29,152 +29,21 @@ class StatusWidgit:
         self.pingwidgit.grid(row=1)
         self.uploadspeedwidgit.grid(row=2)
         self.onlinewidgit.grid(row=3)
-
 class Server:
-    def __init__(self, HOST, PORT):
+    def __init__(self, HOST, PORT, widgit):
         self.HOST = HOST
         self.PORT = PORT
-    def StartServer(self):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind((self.HOST, self.PORT))
-            while True:
-                s.listen()
-                conn, addr = s.accept()
-                objconn = Connection.Connection(conn, addr)
-                with conn:
-                    print(f"Connected by {addr}")
-                    print(objconn.RecieveAll())
-                        
-class MultiConnServer(Server):
-    def __init__(self, HOST, PORT):
-        super().__init__(HOST, PORT)
-    def StartServer(self):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind((self.HOST, self.PORT))
-            while True:
-                s.listen()
-                conn, addr = s.accept()
-                objconn = Connection.Connection(conn, addr)
-                self.PrintData(objconn)
-    @Threading.threaded
-    def PrintData(self, connection):
-        while True:
-            print(f"Connected by {connection.address}")
-            data = connection.Recieve(1024)
-            if len(data) == 0:
-                break
-            else:
-                print(data)
-
-class SleepyMultiConnServer(MultiConnServer):
-    def __init__(self, HOST, PORT, sleeptime):
-        super().__init__(HOST, PORT)
-        self.sleeptime = sleeptime
-    @Threading.threaded
-    def PrintData(self, connection):
-        while True:
-            print(f"Connected by {connection.address}")
-            data = connection.Recieve(1024)
-            if len(data) == 0:
-                break
-            else:
-                print(data)
-            time.sleep(self.sleeptime)
-
-class MultiConnSingleInstructionServerWithCommands(MultiConnServer):
-    def __init__(self, HOST, PORT):
-        super().__init__(HOST, PORT)
-        self.commands = []
-        self.commandlock = threading.Lock()
-        self.commandhandler = None
-        self.connectionqueue = Queue.CircularQueue(10)
-        self.shutdown = False
-    @Threading.threaded
-    def StartServer(self):
-        self.commandhandler = self.CommandHandler()
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            try:
-                s.bind((self.HOST, self.PORT))
-                while True:
-                    s.listen()
-                    conn, addr = s.accept()
-                    data = ""
-                    while len(data) == 0:
-                        data = conn.recv(1024).decode()
-                    if data[0:11] == "<CONNECTED>":
-                        objconn = Connection.Connection(conn, addr, data[11:])
-                        objconn.Send(b"<WELCOME " + objconn.name.encode('utf-8') + b">")
-                        print("NEW CLIENT CONNECTED")
-                        self.connectionqueue.EnQueue(objconn)
-                    else:
-                        conn.sendall(b"CLIENT ATTEMPTED TO CONNECT TO A COMMAND SERVER WITHOUT COMMANDS, THUS CONNECTION WILL BE TERMINATED")
-                        conn.close()  
-                        print(f"CLIENT ATTEMPTED TO CONNECT TO A COMMAND SERVER WITHOUT COMMANDS, INSTEAD GOT {data[0:11]}")
-            except KeyboardInterrupt:
-                s.close()
-    @Threading.threaded
-    def CommandHandler(self):
-        while True:
-            shouldberestored = True
-            if self.connectionqueue.count != 0 and len(self.commands) > 0:
-                commands = []
-                with self.commandlock:
-                    commands = self.commands.pop(0)
-                try:
-                    connection = self.connectionqueue.DeQueue()
-                    while connection == False:
-                        time.sleep(0.1)
-                        connection = self.connectionqueue.DeQueue()
-                    for command in commands:
-                        if command == "<UPDATE>":
-                            connection.Send(b"git pull")
-                            if connection.Recieve(1024).decode() != "<COMMAND_RECIEVED>":
-                                raise Exception("RECEIVED INCORRECT RESPONSE")
-                            connection.Send(b"<RESET>")
-                            if connection.Recieve(1024).decode() != "<COMMAND_RECIEVED>":
-                                raise Exception("RECEIVED INCORRECT RESPONSE")
-                            shouldberestored = False
-                        else:
-                            connection.Send(command.encode("utf-8"))
-                            if connection.Recieve(1024).decode() != "<COMMAND_RECIEVED>":
-                                raise Exception("RECEIVED INCORRECT RESPONSE")
-                    connection.Send(b"<END>")
-                    if connection.Recieve(1024).decode() != "<END_RECIEVED>":
-                        raise Exception("RECEIVED INCORRECT RESPONSE")
-                    connection.Send(b"<START_JOB>")
-                    if shouldberestored:
-                        if connection.Recieve(1024).decode() != "<DONE_JOB>":
-                            raise Exception("RECEIVED INCORRECT RESPONSE")
-                        connection.Send(b"<GET_OUTPUT>")
-                        output = connection.Recieve(1024).decode()
-                        count = 1
-                        while output != "<OUTPUT_DONE>":
-                            print(f"COMMAND {count}:")
-                            count += 1
-                            print(output)
-                            print("\n\n")
-                            connection.Send(b"<NEXT_OUTPUT>")
-                            output = connection.Recieve(1024).decode()
-                        connection = self.connectionqueue.EnQueue(connection)
-                except KeyboardInterrupt:
-                    connection.Send(b"<STOP_JOB>")
-                    if connection.Recieve() != "<JOB_STOPPED>":
-                        raise Exception("RECEIVED INCORRECT RESPONSE")
-                    connection.Send(b"<QUIT_JOB>")
-                    if connection.Recieve() != "<JOB_QUIT>":
-                        raise Exception("RECEIVED INCORRECT RESPONSE")
-                    break
-            else:
-                time.sleep(0.2)
-                    
-class MCSICWHServer(MultiConnSingleInstructionServerWithCommands):
-    def __init__(self, HOST, PORT, widgit):
-        super().__init__(HOST, PORT)
         self.widgit = widgit
         self.statusupdate = False
         self.statuswidgits = []
         self.statusworkers = []
         self.statushandler = []
+        self.commands = []
+        self.commandlock = threading.Lock()
+        self.commandhandler = None
+        self.connectionqueue = Queue.CircularQueue(10)
+        self.update = False
+        self.shutdown = False
     @Threading.threaded
     def StartServer(self):
         self.statushandler = self.StatusHandler()
@@ -196,12 +65,12 @@ class MCSICWHServer(MultiConnSingleInstructionServerWithCommands):
                         if data == "<CLIENT>":
                             print("NEW CLIENT CONNECTED")
                             self.connectionqueue.EnQueue(objconn)
-                            newstatuswidgit = StatusWidgit(self.widgit, objconn)
-                            self.statuswidgits.append(newstatuswidgit)
                         elif data == "<STATUS_WORKER>":
                             print("NEW STATUS WORKER CONNECTED")
                             if not any(statuswidgit.name == objconn.name for statuswidgit in self.statuswidgits):
                                 self.statusworkers.append(Workers.StatusWorkerServer(objconn))
+                                newstatuswidgit = StatusWidgit(self.widgit, objconn)
+                                self.statuswidgits.append(newstatuswidgit)
                             else:
                                 for worker in self.statusworkers:
                                     if worker.name == objconn.name:
@@ -286,7 +155,13 @@ class MCSICWHServer(MultiConnSingleInstructionServerWithCommands):
                         continue
                     currentwidgit.onlinewidgit.config(text=f"Online")
                     currentwidgit.onlinewidgit.config(fg="#00d100")
-                    ping, uploadspeed = worker.StatusRequest()
+                    ping, uploadspeed, online = worker.StatusRequest()
+                    if not online:
+                        currentwidgit.pingwidgit.config(text=f"Ping: 0ms")
+                        currentwidgit.uploadspeedwidgit.config(text=f"Upload Speed: 0MBs")
+                        currentwidgit.onlinewidgit.config(text=f"Offline")
+                        currentwidgit.onlinewidgit.config(fg="#9e0000")
+                        continue
                     currentwidgit.ping = ping
                     currentwidgit.pingwidgit.config(text=f"Ping: " + ("%.0f" % ping) + "ms")
                     if ping < 10:
@@ -311,6 +186,7 @@ class MCSICWHServer(MultiConnSingleInstructionServerWithCommands):
                         currentwidgit.uploadspeedwidgit.config(fg="#99d100")
                     else:
                         currentwidgit.uploadspeedwidgit.config(fg="#00d100")
-                self.statusupdate = 0
+                self.statusupdate = False
             else:
-                time.sleep(0.2)
+                time.sleep(0.5)
+                self.statusupdate = True

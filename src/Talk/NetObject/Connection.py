@@ -16,6 +16,8 @@ class Connection:
                 return True
         except ConnectionAbortedError:
             pass
+        except ConnectionResetError:
+            pass
         self.isonline = False
         return False
     def SetTimeout(self, timeout):
