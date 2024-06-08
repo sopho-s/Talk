@@ -100,7 +100,7 @@ class StatusWorkerClient:
             elif msg == "<ONLINE?>":
                 self.connection.Send(b"<ONLINE>")
             elif msg == "<UPDATE>":
-                Command = Commands.Command(["git pull", "<RESET>"], self.commandlist)
+                Command = Commands.Command(["<UPDATE>"], self.commandlist)
                 try:
                     while Command.RunNext():
                         pass
