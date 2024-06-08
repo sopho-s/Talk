@@ -78,7 +78,7 @@ class StatusWorkerClient:
             raise Exception("SERVER DID NOT REPOND CORRECTLY, INSTEAD GOT: " + data)
         self.connection = Connection.Connection(s, HOST, name)
         strid = str(id)
-        self.connection.Send(strid.endcode("utf-8"))
+        self.connection.Send(strid.encode("utf-8"))
         if self.connection.Recieve(1024).decode() != "<VALID>":
             raise Exception("RECEIVED INCORRECT RESPONSE")
         self.connection.Send(b"<STATUS_WORKER>")
