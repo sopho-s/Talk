@@ -4,8 +4,8 @@
             "git pull",
             "<RESET>"
         ],
-        "<RESET>": [],
-        "<END>": []
+        "<RESET>": ["<RESET>"],
+        "<END>": ["<END>"]
     },
     "FREE": {
         "<TOBE>": [

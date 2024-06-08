@@ -122,7 +122,8 @@ class Server:
                         connection = self.connectionqueue.DeQueue()
                     for command in commands:
                         connection.Send(command.encode("utf-8"))
-                        if connection.Recieve(1024).decode("utf-8", "ignore") != "<COMMAND_RECIEVED>":
+                        msg = connection.Recieve(1024).decode("utf-8", "ignore")
+                        if msg != "<COMMAND_RECIEVED>":
                             raise Exception("RECEIVED INCORRECT RESPONSE")
                     connection.Send(b"<END>")
                     msg = connection.Recieve(1024).decode("utf-8", "ignore") 
