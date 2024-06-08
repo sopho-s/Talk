@@ -82,7 +82,14 @@ class StatusWorkerClient:
                     data = self.connection.Recieve(4096)
                     if data[-5:] == b"<EOF>":
                         break
-                self.connection.Send(b"<OK_READY>")
+                if self.client.isbusy:
+                    self.connection.Send(b"<BUSY>")
+                else:
+                    self.connection.Send(b"<IDLE>")
+                data = self.connection.Recieve(4096)
+                if self.connection.Recieve(1024).decode() != "<OK_THANKS>":
+                    raise Exception("RECEIVED INCORRECT RESPONSE")
+                
             elif msg == "<ONLINE?>":
                 self.connection.Send(b"<ONLINE>")
             else:

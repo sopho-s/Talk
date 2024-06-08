@@ -52,33 +52,33 @@ class CommandClient:
                 commands = []
                 while True:
                     command = s.recv(1024).decode()
-                    if command != "<GIVE_STATUS>":
-                        print(f"RECIEVED {command}")
-                        if command == "<END>" or command == "<END><END>":
-                            s.sendall(b"<END_RECIEVED>")
-                            if s.recv(1024).decode() != "<START_JOB>":
+                    print(f"RECIEVED {command}")
+                    if command == "<END>" or command == "<END><END>":
+                        self.isbusy = True
+                        s.sendall(b"<END_RECIEVED>")
+                        if s.recv(1024).decode() != "<START_JOB>":
+                            raise Exception("RECEIVED INCORRECT RESPONSE")
+                        Command = Commands.Command(commands)
+                        try:
+                            while Command.RunNext():
+                                pass
+                        except Exception:
+                            s.close()
+                            print("PERFORMING CLIENT RESET")
+                            os._exit(1)
+                        print("JOBDONE")
+                        s.sendall(b"<DONE_JOB>")
+                        if s.recv(1024).decode() != "<GET_OUTPUT>":
+                            raise Exception("RECEIVED INCORRECT RESPONSE")
+                        for command in Command.stdout:
+                            s.sendall(command.encode('utf-8'))
+                            if s.recv(1024).decode() != "<NEXT_OUTPUT>":
                                 raise Exception("RECEIVED INCORRECT RESPONSE")
-                            Command = Commands.Command(commands)
-                            try:
-                                while Command.RunNext():
-                                    pass
-                            except Exception:
-                                s.close()
-                                print("PERFORMING CLIENT RESET")
-                                os._exit(1)
-                            print("JOBDONE")
-                            s.sendall(b"<DONE_JOB>")
-                            if s.recv(1024).decode() != "<GET_OUTPUT>":
-                                raise Exception("RECEIVED INCORRECT RESPONSE")
-                            for command in Command.stdout:
-                                s.sendall(command.encode('utf-8'))
-                                if s.recv(1024).decode() != "<NEXT_OUTPUT>":
-                                    raise Exception("RECEIVED INCORRECT RESPONSE")
-                            s.sendall(b"<OUTPUT_DONE>")
-                            commands = []
-                        else:
-                            s.sendall(b"<COMMAND_RECIEVED>")
-                            commands.append(command)
+                        s.sendall(b"<OUTPUT_DONE>")
+                        commands = []
+                    else:
+                        s.sendall(b"<COMMAND_RECIEVED>")
+                        commands.append(command)
             except KeyboardInterrupt:
                 os._exit(1)
             except ConnectionResetError:
