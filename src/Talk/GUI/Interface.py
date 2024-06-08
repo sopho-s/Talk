@@ -24,11 +24,7 @@ def ShutdownServer(server, serverthread):
 def StartServer(root, button):
     global cServer
     cServer = Server.Server("10.101.1.59", 4245, root)
-    serverthread = None
-    try:
-        serverthread = cServer.StartServer()
-    except:
-        pass
+    serverthread = cServer.StartServer()
     commands = tk.Text(root, height = 5, width = 52)
     update = tk.Button(root, width=20, height=2, text='Update', command=lambda: Update(cServer))
     submit = tk.Button(root, width=20, height=2, text='Submit', command=lambda: SubmitCommands(commands, cServer))
