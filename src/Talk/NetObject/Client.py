@@ -53,7 +53,7 @@ class CommandClient:
                     raise Exception("RECEIVED INCORRECT RESPONSE")
                 s.sendall(b"<CLIENT>")
                 print("CLIENT CONNECTED")
-                self.workerthread, self.workerobject = Workers.StatusWorkerClient(HOST, PORT, self.name.decode(), self, self.commands)
+                self.workerthread, self.workerobject = Workers.StatusWorkerClient(HOST, PORT, self.name.decode(), self.id, self, self.commands)
                 commands = []
                 while True:
                     command = s.recv(1024).decode()
