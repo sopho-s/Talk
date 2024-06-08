@@ -15,7 +15,7 @@ class StatusWidgit:
         self.online = True
         self.busy = True
         self.widgit = tk.Toplevel(widgit)
-        self.widgit.geometry("200x100")
+        self.widgit.geometry("200x200")
         self.name = objconn.name
         self.namewidgit = tk.Label(self.widgit, text=objconn.name)
         self.pingwidgit = tk.Label(self.widgit, text="")
