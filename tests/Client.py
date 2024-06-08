@@ -17,7 +17,7 @@ key = 0
 if os.path.isfile(os.path.expanduser( '~' ) + "/clientid.key"):
     with open(os.path.expanduser( '~' ) + "/clientid.key", "r") as f:
         key = int(f.read())
-        name = names[key]
+        name = names[key % len(names)]
 else:
     key = random.randint(0, 2**64)
     Path(os.path.expanduser( '~' ) + "/clientid.key").touch()
