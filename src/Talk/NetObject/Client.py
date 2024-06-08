@@ -72,8 +72,8 @@ class CommandClient:
                             raise Exception("RECEIVED INCORRECT RESPONSE")
                         for command in Command.stdout:
                             s.sendall(command.encode('utf-8'))
+                            s.sendall("<EOSTDO>")
                             msg = s.recv(1024).decode()
-                            print(len(Command.stdout))
                             if msg != "<NEXT_OUTPUT>":
                                 raise Exception("RECEIVED INCORRECT RESPONSE")
                         s.sendall(b"<OUTPUT_DONE>")
