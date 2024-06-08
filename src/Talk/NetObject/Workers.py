@@ -59,7 +59,7 @@ class StatusWorkerServer:
 
 @Threading.classthreaded
 class StatusWorkerClient:
-    def __init__(self, HOST, PORT, name, client):
+    def __init__(self, HOST, PORT, name, client, commandlist):
         self.client = client
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         while True:
@@ -78,6 +78,7 @@ class StatusWorkerClient:
         self.connection.Send(b"<STATUS_WORKER>")
         print("WORKER CONNECTED")
         self.name = name
+        self.commandlist = commandlist
     def Run(self):
         while True:
             msg = self.connection.Recieve(1024).decode()
@@ -100,7 +101,7 @@ class StatusWorkerClient:
             elif msg == "<ONLINE?>":
                 self.connection.Send(b"<ONLINE>")
             elif msg == "<UPDATE>":
-                Command = Commands.Command(["git pull", "<RESET>"])
+                Command = Commands.Command(["git pull", "<RESET>"], self.commandlist)
                 try:
                     while Command.RunNext():
                         pass
