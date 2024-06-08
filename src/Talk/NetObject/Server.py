@@ -48,6 +48,7 @@ class Server:
         self.connectionqueue = Queue.CircularQueue(10)
         self.update = False
         self.shutdown = False
+        self.printlock = threading.Lock()
     @Threading.threaded
     def StartServer(self):
         self.statushandler = self.StatusHandler()
@@ -87,6 +88,20 @@ class Server:
             except KeyboardInterrupt:
                 s.close()
     @Threading.threaded
+    def RecieveCommand(self, connection):
+        if connection.Recieve(1024).decode("utf-8", "ignore") != "<DONE_JOB>":
+            raise Exception("RECEIVED INCORRECT RESPONSE")
+        connection.Send(b"<GET_OUTPUT>")
+        output = connection.Recieve(1024).decode("utf-8", "ignore")
+        with self.printlock:
+            while output != "<OUTPUT_DONE>":
+                print(output, flush="")
+                connection.Send(b"<NEXT_OUTPUT>")
+                output = connection.Recieve(1024)
+                output = output.decode("utf-8", "ignore")
+        with self.commandlock:
+            connection = self.connectionqueue.EnQueue(connection)
+    @Threading.threaded
     def CommandHandler(self):
         while True:
             shouldberestored = True
@@ -118,16 +133,7 @@ class Server:
                         raise Exception("RECEIVED INCORRECT RESPONSE")
                     connection.Send(b"<START_JOB>")
                     if shouldberestored:
-                        if connection.Recieve(1024).decode("utf-8", "ignore") != "<DONE_JOB>":
-                            raise Exception("RECEIVED INCORRECT RESPONSE")
-                        connection.Send(b"<GET_OUTPUT>")
-                        output = connection.Recieve(1024).decode("utf-8", "ignore")
-                        while output != "<OUTPUT_DONE>":
-                            print(output, flush="")
-                            connection.Send(b"<NEXT_OUTPUT>")
-                            output = connection.Recieve(1024)
-                            output = output.decode("utf-8", "ignore")
-                        connection = self.connectionqueue.EnQueue(connection)
+                        self.SubmitCommand(connection)
                 except KeyboardInterrupt:
                     connection.Send(b"<STOP_JOB>")
                     if connection.Recieve() != "<JOB_STOPPED>":

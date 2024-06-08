@@ -46,7 +46,6 @@ class StatusWorkerServer:
             raise Exception("RECEIVED INCORRECT RESPONSE")
         except ConnectionResetError:
             return 0, 0, False, False
-            
 
 @Threading.classthreaded
 class StatusWorkerClient:
