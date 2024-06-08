@@ -20,7 +20,7 @@ class StatusWorkerServer:
     def StatusRequest(self):
         try:
             self.connection.Send(b"<GIVE_STATUS>")
-            self.connection.SetTimeout(30)
+            self.connection.SetTimeout(10)
             msg = self.connection.Recieve(1024).decode()
             if msg != "<OK_START>":
                 if msg == "":
@@ -54,6 +54,8 @@ class StatusWorkerServer:
         except ConnectionResetError:
             return 0, 0, False, False
         except ConnectionAbortedError:
+            return 0, 0, False, False
+        except TimeoutError:
             return 0, 0, False, False
 
 @Threading.classthreaded
