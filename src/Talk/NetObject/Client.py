@@ -51,9 +51,6 @@ class CommandClient:
                 s.sendall(str(self.id).encode("utf-8"))
                 if s.recv(1024).decode() != "<VALID>":
                     raise Exception("RECEIVED INCORRECT RESPONSE")
-                s.sendall(str(self.id).encode("utf-8"))
-                if data != "<OK>":
-                    raise Exception("SERVER DID NOT REPOND CORRECTLY, INSTEAD GOT: " + data)
                 s.sendall(b"<CLIENT>")
                 print("CLIENT CONNECTED")
                 self.workerthread, self.workerobject = Workers.StatusWorkerClient(HOST, PORT, self.name.decode(), self, self.commands)

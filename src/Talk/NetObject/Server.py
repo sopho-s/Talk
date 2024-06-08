@@ -85,10 +85,11 @@ class Server:
                         objconn = Connection.Connection(conn, addr, data[11:])
                         objconn.Send(b"<WELCOME " + objconn.name.encode('utf-8') + b">")
                         data = conn.recv(1024).decode()
-                        print(self.acceptall)
+                        print(data)
                         if self.acceptall:
                             objconn.Send(b"<VALID>")
-                        data = conn.recv(1024).decode()   
+                        data = conn.recv(1024).decode()
+                        print(data)
                         self.AddUser(data, objconn)
                     else:
                         conn.sendall(b"CLIENT ATTEMPTED TO CONNECT TO A COMMAND SERVER WITHOUT COMMANDS, THUS CONNECTION WILL BE TERMINATED")
