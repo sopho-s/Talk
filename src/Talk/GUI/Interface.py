@@ -4,20 +4,18 @@ from ..NetObject import Server
 
 cServer = None
 
-def SubmitCommands(commands, isupdate, server):
+def SubmitCommands(commands, server):
     temp = commands.get("1.0","end").split("\n")
     commands = []
     for value in temp:
         if value != "":
             commands.append(value)
-    if isupdate:
-        commands.append("<UPDATE>")
     with server.commandlock:
         server.commands.append(commands)
         print("COMMAND SUBMITTED")
-        
-def GetStatus(server):
-    server.statusupdate = True
+
+def Update(server):
+    server.update = True
 
 def ShutdownServer(server, serverthread):
     print("SHUTTING DOWN")
@@ -32,16 +30,14 @@ def StartServer(root, button):
     except:
         pass
     commands = tk.Text(root, height = 5, width = 52)
-    update = tk.Button(root, width=20, height=2, text='Submit and update', command=lambda: SubmitCommands(commands, True, cServer))
-    submit = tk.Button(root, width=20, height=2, text='Submit', command=lambda: SubmitCommands(commands, False, cServer))
+    update = tk.Button(root, width=20, height=2, text='Update', command=lambda: Update(cServer))
+    submit = tk.Button(root, width=20, height=2, text='Submit', command=lambda: SubmitCommands(commands, cServer))
     shutdown = tk.Button(root, width=20, height=2, text='Shutdown', command=lambda: ShutdownServer(cServer, serverthread))
-    statusupdate = tk.Button(root, width=20, height=2, text='Get status update', command=lambda: GetStatus(cServer))
     button.pack_forget()
     commands.pack()
     update.pack()
     submit.pack()
     shutdown.pack()
-    statusupdate.pack()
     
 def main():
     root = tk.Tk()

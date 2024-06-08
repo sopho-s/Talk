@@ -115,18 +115,9 @@ class Server:
                         time.sleep(0.1)
                         connection = self.connectionqueue.DeQueue()
                     for command in commands:
-                        if command == "<UPDATE>":
-                            connection.Send(b"git pull")
-                            if connection.Recieve(1024).decode("utf-8", "ignore") != "<COMMAND_RECIEVED>":
-                                raise Exception("RECEIVED INCORRECT RESPONSE")
-                            connection.Send(b"<RESET>")
-                            if connection.Recieve(1024).decode("utf-8", "ignore") != "<COMMAND_RECIEVED>":
-                                raise Exception("RECEIVED INCORRECT RESPONSE")
-                            shouldberestored = False
-                        else:
-                            connection.Send(command.encode("utf-8"))
-                            if connection.Recieve(1024).decode("utf-8", "ignore") != "<COMMAND_RECIEVED>":
-                                raise Exception("RECEIVED INCORRECT RESPONSE")
+                        connection.Send(command.encode("utf-8"))
+                        if connection.Recieve(1024).decode("utf-8", "ignore") != "<COMMAND_RECIEVED>":
+                            raise Exception("RECEIVED INCORRECT RESPONSE")
                     connection.Send(b"<END>")
                     msg = connection.Recieve(1024).decode("utf-8", "ignore") 
                     if msg != "<END_RECIEVED>":
@@ -147,6 +138,10 @@ class Server:
     @Threading.threaded
     def StatusHandler(self):
         while True:
+            if self.update:
+                for worker in self.statusworkers:
+                    worker.Update()
+                self.update = False
             if self.statusupdate:
                 print("REQUESTING STATUS")
                 for worker in self.statusworkers:

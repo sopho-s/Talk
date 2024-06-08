@@ -10,6 +10,13 @@ class StatusWorkerServer:
     def __init__(self, connection):
         self.connection = connection
         self.name = connection.name
+    def Update(self):
+        try:
+            self.connection.Send(b"<UPDATE>")
+        except ConnectionResetError:
+            return
+        except ConnectionAbortedError:
+            return
     def StatusRequest(self):
         try:
             self.connection.Send(b"<GIVE_STATUS>")
