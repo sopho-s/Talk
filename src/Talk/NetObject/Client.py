@@ -81,7 +81,7 @@ class CommandClient:
                         s.sendall(b"<OUTPUT_DONE>")
                         commands = []
                         self.isbusy = False
-                    else:
+                    elif command != "<NEXT_OUTPUT>":
                         s.sendall(b"<COMMAND_RECIEVED>")
                         print("NOT GOOD")
                         commands.append(command)
