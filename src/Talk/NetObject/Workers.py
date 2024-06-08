@@ -57,6 +57,8 @@ class StatusWorkerServer:
             return 0, 0, False, False
         except TimeoutError:
             return 0, 0, False, False
+        except ZeroDivisionError:
+            return 0, 0, False, False
 
 @Threading.classthreaded
 class StatusWorkerClient:
