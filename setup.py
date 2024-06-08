@@ -5,7 +5,7 @@ with open("README.md", "r", encoding = "utf-8") as fh:
 
 setuptools.setup(
     name = "STalk",
-    version = "0.0.1",
+    version = "0.0.1.1",
     author = "Nicholas woods",
     author_email = "woodsnicholas01@gmail.com",
     description = "Allows easy creation of a client server model",
