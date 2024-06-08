@@ -2,6 +2,7 @@
     "TAKEN": {
         "<UPDATE>": [
             "git pull",
+            "pip install STalk --upgrade",
             "<RESET>"
         ],
         "<RESET>": ["<RESET>"],

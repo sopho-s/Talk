@@ -1,4 +1,6 @@
-import Talk.NetObject.Client
+import sys, os
+sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__))))
+from src.Talk.NetObject import Client as C
 import random
 import os.path
 import json
@@ -20,5 +22,5 @@ else:
     with open(os.path.expanduser( '~' ) + "/clientid.key", "w") as f:
         f.write(str(key))
     name = names[key]
-Client = Talk.NetObject.Client.CommandClient(name.encode("utf-8"), commands)
+Client = C.CommandClient(name.encode("utf-8"), commands)
 Client.ConnectClient("10.101.1.59", 4245)
