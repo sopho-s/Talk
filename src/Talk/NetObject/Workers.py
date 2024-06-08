@@ -38,10 +38,9 @@ class StatusWorkerServer:
                 total += (time.time() - start) / 10
             total *= 1000
             start = time.time()
-            self.connection.SendFile(os.path.dirname(os.path.abspath(__file__)) + "\\Payload.csv")
+            self.connection.Send(b"*" * 1000000)
             end = time.time() - start
-            filestats = os.stat(os.path.dirname(os.path.abspath(__file__)) + "\\Payload.csv")
-            uploadspeed = (filestats.st_size / (1024 * 1024)) / end
+            uploadspeed = (1000000 / (1024 * 1024)) / end
             self.connection.Send(b"<EOF>")
             msg = self.connection.Recieve(1024).decode()
             self.connection.SetTimeout(None)
