@@ -13,7 +13,7 @@ class StatusWorkerServer:
         self.name = connection.name
     def Update(self):
         try:
-            self.connection.Send(b"<UPDATE>")
+            self.connection.Send({"message" : "<UPDATE>"})
         except ConnectionResetError:
             return
         except ConnectionAbortedError:
@@ -21,7 +21,7 @@ class StatusWorkerServer:
     def StatusRequest(self):
         try:
             self.connection.Send({"message" : "<GIVE_STATUS>"})
-            self.connection.SetTimeout(5)
+            self.connection.SetTimeout(20)
             msg = self.connection.connection.recv(1024).decode()
             if msg[-10:] != "<OK_START>":
                 if msg == "":
