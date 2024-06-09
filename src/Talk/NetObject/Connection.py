@@ -29,11 +29,11 @@ class Connection:
         bytes = bytearray()
         while True:
             data = self.connection.recv(1024)
+            print(data)
             if data == b"":
                 break
             else:
                 bytes.extend(data)
-        print(bytes)
         return Data.Data(bytes).Decode()
     def Send(self, data, withnull = False):
         self.connection.sendall(Data.Data(data).Encode())
