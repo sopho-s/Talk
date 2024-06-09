@@ -33,6 +33,7 @@ class Connection:
                 break
             else:
                 bytes.extend(data)
+        print(bytes)
         return Data.Data(bytes).Decode()
     def Send(self, data, withnull = False):
         self.connection.sendall(Data.Data(data).Encode())
