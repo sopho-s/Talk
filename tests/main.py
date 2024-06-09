@@ -4,7 +4,7 @@ from src.Talk.GUI import Interface as talkint
 from src.Talk import Encryption
 
 
-e, d, n = Encryption.RSA()
+'''e, d, n = Encryption.RSA()
 
 
 num = int(input("ENTER NUMBERRRR"))
@@ -15,6 +15,6 @@ print(encrypted)
 
 decrypted = Encryption.DecryptRSA(encrypted, d, n)
 
-print(decrypted)
+print(decrypted)'''
 
-#talkint.main()
+talkint.main()

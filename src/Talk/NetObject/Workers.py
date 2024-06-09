@@ -2,7 +2,7 @@ import socket
 import time
 import os
 from ..Threading import Threading
-from ..NetObject import Connection
+from ..NetObject import Connection, Data
 from ..Command import Commands
     
 
@@ -19,7 +19,7 @@ class StatusWorkerServer:
             return
     def StatusRequest(self):
         try:
-            self.connection.Send(b"<GIVE_STATUS>")
+            self.connection.Send({"message" : "<GIVE_STATUS>"})
             self.connection.SetTimeout(5)
             msg = self.connection.Recieve(1024).decode()
             if msg[-10:] != "<OK_START>":
@@ -72,25 +72,28 @@ class StatusWorkerClient:
                 break
             except:
                 time.sleep(1)
-        s.sendall(b"<CONNECTED>" + name.encode("utf-8"))
+        message = {"message" : "<CONNECTED>", "name" : self.name.decode()}
+        s.sendall(Data.Data(message).Encode())
         data = ""
         while len(data) == 0:
-            data = s.recv(1024).decode()
-        if data != "<WELCOME " + name + ">":
+            data = Data.Data(s.recv(1024)).Decode()
+        if data["message"] != "<WELCOME>" or data["name"]  != self.name.decode():
             raise Exception("SERVER DID NOT REPOND CORRECTLY, INSTEAD GOT: " + data)
-        self.connection = Connection.Connection(s, HOST, name)
-        strid = str(id)
-        self.connection.Send(strid.encode("utf-8"))
-        if self.connection.Recieve(1024).decode() != "<VALID>":
+        message = {"id" : str(self.id)}
+        s.sendall(Data.Data(message).Encode())
+        data = Data.Data(s.recv(1024)).Decode()
+        if data["message"] != "<VALID>":
             raise Exception("RECEIVED INCORRECT RESPONSE")
-        self.connection.Send(b"<STATUS_WORKER>")
+        message = {"type" : "<STATUS_WORKER>"}
+        s.sendall(Data.Data(message).Encode())
         print("WORKER CONNECTED")
+        self.connection = Connection.Connection(s, HOST)
         self.name = name
         self.commandlist = commandlist
     def Run(self):
         while True:
-            msg = self.connection.Recieve(1024).decode()
-            if msg == "<GIVE_STATUS>":
+            message = self.connection.Recieve()
+            if message["message"] == "<GIVE_STATUS>":
                 print("GIVING STATUS")
                 self.connection.Send(b"<OK_START>")
                 for i in range(10):
@@ -106,9 +109,9 @@ class StatusWorkerClient:
                     self.connection.Send(b"<BUSY>")
                 else:
                     self.connection.Send(b"<IDLE>")
-            elif msg == "<ONLINE?>":
+            elif message["message"] == "<ONLINE?>":
                 self.connection.Send(b"<ONLINE>")
-            elif msg == "<UPDATE>":
+            elif message["message"] == "<UPDATE>":
                 Command = Commands.Command(["<UPDATE>"], self.commandlist)
                 try:
                     while Command.RunNext():

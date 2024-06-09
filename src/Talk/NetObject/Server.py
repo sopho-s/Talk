@@ -86,11 +86,11 @@ class Server:
                         message = {}
                         message["message"] = "<WELCOME>"
                         message["name"] = data["name"]
-                        objconn.Send(Data.Data(message).Encode())
-                        data = Data.Data(conn.recv(1024)).Decode()
+                        objconn.Send(message)
+                        data = objconn.Recieve(1024)
                         if self.acceptall:
-                            objconn.Send(Data.Data({"message" : "<VALID>"}).Encode())
-                        data = Data.Data(conn.recv(1024)).Decode()
+                            objconn.Send({"message" : "<VALID>"})
+                        data = objconn.Recieve(1024)
                         print(data)
                         self.AddUser(data["type"], objconn)
                     else:
@@ -101,19 +101,12 @@ class Server:
                 s.close()
     @Threading.threaded
     def RecieveCommand(self, connection):
-        if connection.Recieve(1024).decode("utf-8", "ignore") != "<DONE_JOB>":
+        if connection.Recieve(1024)["message"] != "<DONE_JOB>":
             raise Exception("RECEIVED INCORRECT RESPONSE")
-        connection.Send(b"<GET_OUTPUT>")
-        output = connection.Recieve(1024).decode("utf-8", "ignore")
+        connection.Send({"message" : "<GET_OUTPUT>"})
+        output = connection.RecieveAll()
         with self.printlock:
-            while output != "<OUTPUT_DONE>":
-                if output[-8:] != "<EOSTDO>":
-                    print(output, flush="")
-                else:
-                    print(output[:-8], flush="\n\n")
-                    connection.Send(b"<NEXT_OUTPUT>")
-                output = connection.Recieve(1024)
-                output = output.decode("utf-8", "ignore")
+            print(output["output"])
         with self.commandlock:
             connection = self.connectionqueue.EnQueue(connection)
     @Threading.threaded
@@ -129,25 +122,13 @@ class Server:
                     while connection == False:
                         time.sleep(0.1)
                         connection = self.connectionqueue.DeQueue()
-                    for command in commands:
-                        connection.Send(command.encode("utf-8"))
-                        msg = connection.Recieve(1024).decode("utf-8", "ignore")
-                        if msg != "<COMMAND_RECIEVED>":
-                            raise Exception("RECEIVED INCORRECT RESPONSE")
-                    connection.Send(b"<END>")
-                    msg = connection.Recieve(1024).decode("utf-8", "ignore") 
-                    if msg != "<END_RECIEVED>":
+                    connection.Send({"commands" : commands, "command_amount" : len(commands)})
+                    if connection.Recieve(1024)["messsage"] != "<READY>":
                         raise Exception("RECEIVED INCORRECT RESPONSE")
-                    connection.Send(b"<START_JOB>")
+                    connection.Send({"message" : "<START_JOB>"})
                     if shouldberestored:
                         self.RecieveCommand(connection)
                 except KeyboardInterrupt:
-                    connection.Send(b"<STOP_JOB>")
-                    if connection.Recieve() != "<JOB_STOPPED>":
-                        raise Exception("RECEIVED INCORRECT RESPONSE")
-                    connection.Send(b"<QUIT_JOB>")
-                    if connection.Recieve() != "<JOB_QUIT>":
-                        raise Exception("RECEIVED INCORRECT RESPONSE")
                     break
             else:
                 time.sleep(0.2)

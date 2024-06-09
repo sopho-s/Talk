@@ -2,7 +2,7 @@ import socket
 import time
 import os
 from ..Command import Commands
-from ..NetObject import Workers
+from ..NetObject import Workers, Connection
 from ..Objects import Data
 
 class Client:
@@ -59,40 +59,31 @@ class CommandClient:
                 message = {"type" : "<CLIENT>"}
                 s.sendall(Data.Data(message).Encode())
                 print("CLIENT CONNECTED")
+                connection = Connection.Connection(s, HOST)
                 self.workerthread, self.workerobject = Workers.StatusWorkerClient(HOST, PORT, self.name.decode(), self.id, self, self.commands)
-                commands = []
                 while True:
-                    command = s.recv(1024).decode()
-                    print(f"RECIEVED {command}")
-                    if command == "<END>" or command == "<END><END>":
-                        self.isbusy = True
-                        s.sendall(b"<END_RECIEVED>")
-                        if s.recv(1024).decode() != "<START_JOB>":
-                            raise Exception("RECEIVED INCORRECT RESPONSE")
-                        Command = Commands.Command(commands, self.commands)
-                        try:
-                            while Command.RunNext():
-                                pass
-                        except Exception:
-                            s.close()
-                            print("PERFORMING CLIENT RESET")
-                            os._exit(1)
-                        print("JOBDONE")
-                        s.sendall(b"<DONE_JOB>")
-                        if s.recv(1024).decode() != "<GET_OUTPUT>":
-                            raise Exception("RECEIVED INCORRECT RESPONSE")
-                        for command in Command.stdout:
-                            s.sendall(command.encode('utf-8'))
-                            s.sendall(b"<EOSTDO>")
-                            msg = s.recv(1024).decode()
-                            if msg != "<NEXT_OUTPUT>":
-                                raise Exception("RECEIVED INCORRECT RESPONSE")
-                        s.sendall(b"<OUTPUT_DONE>")
-                        commands = []
-                        self.isbusy = False
-                    elif command != "<NEXT_OUTPUT>":
-                        s.sendall(b"<COMMAND_RECIEVED>")
-                        commands.append(command)
+                    commands = connection.RecieveAll()
+                    print(f"RECIEVED {commands}")
+                    self.isbusy = True
+                    message = {"type" : "<CLIENT>"}
+                    connection.Send({"message" : "<READY>"})
+                    if connection.RecieveAll()["message"] != "<START_JOB>":
+                        raise Exception("RECEIVED INCORRECT RESPONSE")
+                    Command = Commands.Command(commands["commands"], self.commands)
+                    try:
+                        while Command.RunNext():
+                            pass
+                    except Exception:
+                        s.close()
+                        print("PERFORMING CLIENT RESET")
+                        os._exit(1)
+                    print("JOBDONE")
+                    connection.Send({"message" : "<DONE_JOB>"})
+                    if connection.RecieveAll()["message"] != "<GET_OUTPUT>":
+                        raise Exception("RECEIVED INCORRECT RESPONSE")
+                    connection.Send({"output" : Command.stdout})
+                    commands = {}
+                    self.isbusy = False
             except KeyboardInterrupt:
                 os._exit(1)
             except ConnectionResetError:
