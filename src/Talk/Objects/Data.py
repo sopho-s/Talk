@@ -7,6 +7,8 @@ class Data:
         if type(self.data) != str:
             self.data = json.dumps(self.data)
     def JSONify(self):
+        if len(self.data) == 0:
+            return
         if type(self.data) != dict:
             self.data = json.loads(self.data)
     def Encode(self):
