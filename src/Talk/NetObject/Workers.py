@@ -88,7 +88,7 @@ class StatusWorkerClient:
         e = data["keys"][0]
         n = data["keys"][1]
         key1, key2, key3, key4 = EncryptionKeyGen()
-        connection = Connection.Connection(s, HOST, self.name, key1, key2, key3, key4)
+        connection = Connection.Connection(s, HOST, name, key1, key2, key3, key4)
         key1list, key2list, key3list, key4list = self.GenerateKeyLists(key1, key2, key3, key4)
         message = {"key1" : [EncryptRSA(keyval, e, n) for keyval in key1list], "key2" : [EncryptRSA(keyval, e, n) for keyval in key2list], "key3" : [EncryptRSA(keyval, e, n) for keyval in key3list], "key4" : [EncryptRSA(keyval, e, n) for keyval in key4list]}
         s.sendall(Data.Data(message).Encode())
