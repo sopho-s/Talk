@@ -2,7 +2,8 @@ import socket
 import time
 import os
 from ..Threading import Threading
-from ..NetObject import Connection, Data
+from ..NetObject import Connection
+from ..Objects import Data
 from ..Command import Commands
     
 
