@@ -22,16 +22,16 @@ class StatusWorkerServer:
         try:
             self.connection.Send({"message" : "<GIVE_STATUS>"})
             self.connection.SetTimeout(5)
-            msg = self.connection.Recieve(1024).decode()
+            msg = self.connection.connection.recv(1024).decode()
             if msg[-10:] != "<OK_START>":
                 if msg == "":
                     raise ConnectionResetError()
                 raise Exception("RECEIVED INCORRECT RESPONSE")
             total = 0
             for i in range(10):
-                self.connection.Send(b"<PING>")
+                self.connection.connection.sendall(b"<PING>")
                 start = time.time()
-                msg = self.connection.Recieve(1024).decode()
+                msg = self.connection.connection.recv(1024).decode()
                 if msg != "<PONG>":
                     if msg == "":
                         raise ConnectionResetError()
@@ -39,11 +39,11 @@ class StatusWorkerServer:
                 total += (time.time() - start) / 10
             total *= 1000
             start = time.time()
-            self.connection.Send(b"*" * 10000000)
+            self.connection.connection.sendall(b"*" * 1000000)
             end = time.time() - start
-            uploadspeed = (10000000 / (1024 * 1024)) / end
-            self.connection.Send(b"<EOF>")
-            msg = self.connection.Recieve(1024).decode()
+            uploadspeed = (1000000 / (1024 * 1024)) / end
+            self.connection.connection.sendall(b"<EOF>")
+            msg = self.connection.connection.recv(1024).decode()
             self.connection.SetTimeout(None)
             if msg == "<BUSY>":
                 return total, uploadspeed, True, True

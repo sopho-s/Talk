@@ -29,13 +29,15 @@ class Connection:
         bytes = bytearray()
         while True:
             data = self.connection.recv(1024)
-            if not data:
+            if data != b"":
                 break
             else:
                 bytes.extend(data)
         return Data.Data(bytes).Decode()
-    def Send(self, data):
+    def Send(self, data, withnull = False):
         self.connection.sendall(Data.Data(data).Encode())
+        if withnull:
+            self.connection.sendall(b"")
     def SendFile(self, filename):
         file = open(filename, "r")
         data = file.read(4096)
