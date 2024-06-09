@@ -78,9 +78,12 @@ class CommandClient:
                         os._exit(1)
                     print("JOBDONE")
                     connection.Send({"message" : "<DONE_JOB>"})
+                    print("TEST1")
                     if connection.RecieveAll()["message"] != "<GET_OUTPUT>":
                         raise Exception("RECEIVED INCORRECT RESPONSE")
+                    print("TEST2")
                     connection.Send({"output" : Command.stdout}, True)
+                    print("TEST3")
                     commands = {}
                     self.isbusy = False
             except KeyboardInterrupt:
