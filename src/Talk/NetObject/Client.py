@@ -4,6 +4,7 @@ import os
 from ..Command import Commands
 from ..NetObject import Workers, Connection
 from ..Objects import Data
+from ..Encryption import *
 
 class Client:
     def __init__(self):
@@ -51,15 +52,24 @@ class CommandClient:
                     data = Data.Data(s.recv(1024)).Decode()
                 if data["message"] != "<WELCOME>" or data["name"]  != self.name.decode():
                     raise Exception("SERVER DID NOT REPOND CORRECTLY, INSTEAD GOT: " + data)
+                e = data["keys"][0]
+                n = data["keys"][1]
+                key1, key2, key3, key4 = EncryptionKeyGen()
+                message = {"keys" : [EncryptRSA(key1, e, n), EncryptRSA(key2, e, n), EncryptRSA(key3, e, n), EncryptRSA(key4, e, n)]}
                 message = {"id" : str(self.id)}
                 s.sendall(Data.Data(message).Encode())
-                data = Data.Data(s.recv(1024)).Decode()
+                connection = Connection.Connection(s, HOST, self.name, key1, key2, key3, key4)
+                data = connection.Recieve(1024)
                 if data["message"] != "<VALID>":
                     raise Exception("RECEIVED INCORRECT RESPONSE")
                 message = {"type" : "<CLIENT>"}
-                s.sendall(Data.Data(message).Encode())
+                connection.Send(message)
                 print("CLIENT CONNECTED")
-                connection = Connection.Connection(s, HOST)
+                if data["message"] != "<VALID>":
+                    raise Exception("RECEIVED INCORRECT RESPONSE")
+                message = {"type" : "<CLIENT>"}
+                connection.Send(message)
+                print("CLIENT CONNECTED")
                 self.workerthread, self.workerobject = Workers.StatusWorkerClient(HOST, PORT, self.name.decode(), self.id, self, self.commands)
                 while True:
                     commands = connection.RecieveAll()

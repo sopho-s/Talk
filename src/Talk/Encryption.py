@@ -3,6 +3,7 @@ import random
 import math
 import time
 from scipy import special
+from src.Talk.Objects import Bits
  
  
 class Key:
@@ -44,7 +45,7 @@ def Getpartrand():
     start = time.time()
     time.sleep(0.01)
     key = key * 10 ** ((time.time() - start - 0.01) * 1000)
-    key = int(key * 2 ** 128) % 2 ** 128
+    key = int(key * 2 ** 48) % 2 ** 48
     return key
 
 def GenerateRandom():
@@ -55,7 +56,10 @@ def GenerateRandom():
     output = 0
     count = 0.7723
     for char in stringkey:
-        output += (int(char) ** count) % (2**64)
+        addition = ord(char) ** count
+        while addition > 2 ** 64:
+            addition /= 2
+        output += addition
         count += 0.7723
         if count > 128:
             count -= 128
@@ -85,3 +89,102 @@ def EncryptRSA(data, e, n):
 
 def DecryptRSA(data, d, n):
     return pow(data, d, n)
+
+def EncryptionKeyGen():
+    strkey = str(GenerateRandom()) + str(GenerateRandom())
+    key1 = (int(strkey) + Getpartrand()) % (2 ** 128)
+    strkey = str(GenerateRandom()) + str(GenerateRandom())
+    key2 = (int(strkey) + Getpartrand()) % (2 ** 128)
+    strkey = str(GenerateRandom()) + str(GenerateRandom())
+    key3 = (int(strkey) + Getpartrand()) % (2 ** 128)
+    strkey = str(GenerateRandom()) + str(GenerateRandom()) + str(GenerateRandom()) + str(GenerateRandom()) + str(GenerateRandom())
+    key4 = (int(strkey) + Getpartrand()) % (2 ** 128)
+    return key1, key2, key3, key4
+
+def Encrypt(data, key1, key2, key3, key4):
+    datalist = []
+    while len(data) > 16:
+        datalist.append(Bits.BitArray(data[0:16], 128).String())
+        data = data[16:]
+    datalist.append(Bits.BitArray(data, 128).String())
+    returnval = ""
+    for value in datalist:
+        returnval += Encrypt16(value, key1, key2, key3, key4)
+    return returnval
+
+def Encrypt16(data, key1, key2, key3, key4):
+    data = list(map(str, data))
+    random.seed(key1)
+    swaplist = [i for i in range(16)]
+    for i in range(8):
+        value1 = random.choice(swaplist)
+        for t in range(len(swaplist)):
+            if swaplist[t] == value1:
+                swaplist.pop(t)
+                break
+        value2 = random.choice(swaplist)
+        for t in range(len(swaplist)):
+            if swaplist[t] == value2:
+                swaplist.pop(t)
+                break
+        temp = data[value1]
+        data[value1] = data[value2]
+        data[value2] = temp
+    
+    random.seed(key2)
+    for i in range(4):
+        shift = random.randint(0, 3)
+        shifted = [0, 0, 0, 0]
+        for t in range(4):
+            shifted[(t + shift) % 4] = data[i * 4 + t]
+        for t in range(4):
+            data[i * 4 + t] = shifted[t]
+            
+    databits = Bits.BitArray("".join(data))
+    keybits = Bits.BitArray(key4)
+    databits ^= keybits
+    return databits.String()
+
+def Decrypt(data, key1, key2, key3, key4):
+    datalist = []
+    while len(data) > 16:
+        datalist.append(Bits.BitArray(data[0:16], 128).String())
+        data = data[16:]
+    datalist.append(Bits.BitArray(data, 128).String())
+    returnval = ""
+    for value in datalist:
+        temp = value
+        returnval += Bits.BitArray(Decrypt16(value, key1, key2, key3, key4)).StringClean()
+    return returnval
+
+def Decrypt16(data, key1, key2, key3, key4):
+    databits = Bits.BitArray(data)
+    keybits = Bits.BitArray(key4)
+    databits ^= keybits
+    data = list(map(str, databits.String()))
+    random.seed(key2)
+    for i in range(4):
+        shift = 4 - random.randint(0, 3)
+        shifted = [0, 0, 0, 0]
+        for t in range(4):
+            shifted[(t + shift) % 4] = data[i * 4 + t]
+        for t in range(4):
+            data[i * 4 + t] = shifted[t]
+    
+    random.seed(key1)
+    swaplist = [i for i in range(16)]
+    for i in range(8):
+        value1 = random.choice(swaplist)
+        for t in range(len(swaplist)):
+            if swaplist[t] == value1:
+                swaplist.pop(t)
+                break
+        value2 = random.choice(swaplist)
+        for t in range(len(swaplist)):
+            if swaplist[t] == value2:
+                swaplist.pop(t)
+                break
+        temp = data[value1]
+        data[value1] = data[value2]
+        data[value2] = temp
+    return "".join(data)

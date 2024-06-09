@@ -7,6 +7,7 @@ from ..NetObject import Connection
 from ..NetObject import Workers
 from ..Threading import Threading
 from ..Objects import Queue, Data
+from ..Encryption import *
 
 class StatusWidgit:
     def __init__(self, widgit, objconn):
@@ -52,7 +53,8 @@ class Server:
         self.printlock = threading.Lock()
         self.acceptall = False
         self.connectedids = []
-        self.key = key
+        self.keys = []
+        self.e, self.d, self.n = RSA()
     def AddUser(self, type, connection):
         if type == "<CLIENT>":
             print("NEW CLIENT CONNECTED")
@@ -82,12 +84,16 @@ class Server:
                     while len(data) == 0:
                         data = Data.Data(conn.recv(1024)).Decode()
                     if data["message"] == "<CONNECTED>":
-                        objconn = Connection.Connection(conn, addr, data["name"])
                         message = {}
                         message["message"] = "<WELCOME>"
                         message["name"] = data["name"]
-                        objconn.Send(message)
-                        data = objconn.Recieve(1024)
+                        message["keys"] = [self.e, self.n]
+                        self.connection.sendall(Data.Data(message).Encode())
+                        data = Data.Data(conn.recv(1024)).Decode()
+                        self.keys = data["keys"]
+                        for i in range(4):
+                            self.keys[i] = DecryptRSA(self.keys[i], self.d, self.n)
+                        objconn = Connection.Connection(conn, addr, data["name"], *self.keys)
                         if self.acceptall:
                             objconn.Send({"message" : "<VALID>"})
                         data = objconn.Recieve(1024)

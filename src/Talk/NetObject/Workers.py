@@ -5,6 +5,7 @@ from ..Threading import Threading
 from ..NetObject import Connection
 from ..Objects import Data
 from ..Command import Commands
+from ..Encryption import *
     
 
 class StatusWorkerServer:
@@ -84,15 +85,24 @@ class StatusWorkerClient:
             data = Data.Data(s.recv(1024)).Decode()
         if data["message"] != "<WELCOME>" or data["name"]  != name:
             raise Exception("SERVER DID NOT REPOND CORRECTLY, INSTEAD GOT: " + data)
+        e = data["keys"][0]
+        n = data["keys"][1]
+        key1, key2, key3, key4 = EncryptionKeyGen()
+        message = {"keys" : [EncryptRSA(key1, e, n), EncryptRSA(key2, e, n), EncryptRSA(key3, e, n), EncryptRSA(key4, e, n)]}
         message = {"id" : str(self.id)}
         s.sendall(Data.Data(message).Encode())
-        data = Data.Data(s.recv(1024)).Decode()
+        connection = Connection.Connection(s, HOST, name, key1, key2, key3, key4)
+        data = connection.Recieve(1024)
+        if data["message"] != "<VALID>":
+            raise Exception("RECEIVED INCORRECT RESPONSE")
+        message = {"type" : "<CLIENT>"}
+        connection.Send(message)
+        print("CLIENT CONNECTED")
         if data["message"] != "<VALID>":
             raise Exception("RECEIVED INCORRECT RESPONSE")
         message = {"type" : "<STATUS_WORKER>"}
-        s.sendall(Data.Data(message).Encode())
-        print("WORKER CONNECTED")
-        self.connection = Connection.Connection(s, HOST)
+        connection.Send(message)
+        print("STATUS WORKER CONNECTED")
         self.name = name
         self.commandlist = commandlist
     def Run(self):
