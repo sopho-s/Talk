@@ -53,7 +53,7 @@ class Server:
         self.printlock = threading.Lock()
         self.acceptall = False
         self.connectedids = []
-        self.keys = []
+        self.keys = [0, 0, 0, 0]
         self.e, self.d, self.n = RSA()
     def AddUser(self, type, connection):
         if type == "<CLIENT>":

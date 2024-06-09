@@ -93,6 +93,7 @@ class CommandClient:
                 message = {"key1" : [EncryptRSA(keyval, e, n) for keyval in key1list], "key2" : [EncryptRSA(keyval, e, n) for keyval in key2list], "key3" : [EncryptRSA(keyval, e, n) for keyval in key3list], "key4" : [EncryptRSA(keyval, e, n) for keyval in key4list]}
                 s.sendall(Data.Data(message).Encode())
                 data = connection.Recieve(1024)
+                print(data)
                 if data["message"] != "<VALID>":
                     raise Exception("RECEIVED INCORRECT RESPONSE")
                 message = {"type" : "<CLIENT>"}
