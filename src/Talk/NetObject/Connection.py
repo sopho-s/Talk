@@ -29,7 +29,7 @@ class Connection:
         bytes = bytearray()
         while True:
             data = self.connection.recv(1024)
-            if data[-1] == b" ":
+            if data == b" ":
                 break
             else:
                 bytes.extend(data)
