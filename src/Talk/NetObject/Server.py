@@ -91,10 +91,10 @@ class Server:
                         message["keys"] = [self.e, self.n]
                         conn.sendall(Data.Data(message).Encode())
                         data = Data.Data(conn.recv(1024)).Decode()
-                        self.keys[0] = int("".join([str(DecryptRSA(keyval)) for keyval in data["key1"]]))
-                        self.keys[1] = int("".join([str(DecryptRSA(keyval)) for keyval in data["key2"]]))
-                        self.keys[2] = int("".join([str(DecryptRSA(keyval)) for keyval in data["key3"]]))
-                        self.keys[3] = int("".join([str(DecryptRSA(keyval)) for keyval in data["key4"]]))
+                        self.keys[0] = int("".join([str(DecryptRSA(keyval, self.d, self.n)) for keyval in data["key1"]]))
+                        self.keys[1] = int("".join([str(DecryptRSA(keyval, self.d, self.n)) for keyval in data["key2"]]))
+                        self.keys[2] = int("".join([str(DecryptRSA(keyval, self.d, self.n)) for keyval in data["key3"]]))
+                        self.keys[3] = int("".join([str(DecryptRSA(keyval, self.d, self.n)) for keyval in data["key4"]]))
                         objconn = Connection.Connection(conn, addr, name, *self.keys)
                         if self.acceptall:
                             objconn.Send({"message" : "<VALID>"})
