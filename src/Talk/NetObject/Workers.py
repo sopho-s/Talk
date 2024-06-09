@@ -93,32 +93,37 @@ class StatusWorkerClient:
         self.commandlist = commandlist
     def Run(self):
         while True:
-            message = self.connection.Recieve(1024)
-            if message["message"] == "<GIVE_STATUS>":
-                print("GIVING STATUS")
-                self.connection.connection.sendall(b"<OK_START>")
-                for i in range(10):
-                    if self.connection.connection.recv(1024).decode() != "<PING>":
-                        raise Exception("RECEIVED INCORRECT RESPONSE")
-                    self.connection.connection.sendall(b"<PONG>")
-                data = ""
-                while True:
-                    data = self.connection.connection.recv(4096)
-                    if data[-5:] == b"<EOF>":
-                        break
-                if self.client.isbusy:
-                    self.connection.connection.sendall(b"<BUSY>")
+            try:
+                message = self.connection.Recieve(1024)
+                if message["message"] == "<GIVE_STATUS>":
+                    print("GIVING STATUS")
+                    self.connection.connection.sendall(b"<OK_START>")
+                    for i in range(10):
+                        if self.connection.connection.recv(1024).decode() != "<PING>":
+                            raise Exception("RECEIVED INCORRECT RESPONSE OR CONNECTION ERROR, RETRYING")
+                        self.connection.connection.sendall(b"<PONG>")
+                    data = ""
+                    while True:
+                        data = self.connection.connection.recv(4096)
+                        if len(data) == 0:
+                            raise Exception("CONNECTION ERROR, RETRYING")
+                        if data[-5:] == b"<EOF>":
+                            break
+                    if self.client.isbusy:
+                        self.connection.connection.sendall(b"<BUSY>")
+                    else:
+                        self.connection.connection.sendall(b"<IDLE>")
+                elif message["message"] == "<ONLINE?>":
+                    self.connection.connection.sendall(b"<ONLINE>")
+                elif message["message"] == "<UPDATE>":
+                    Command = Commands.Command(["<UPDATE>"], self.commandlist)
+                    try:
+                        while Command.RunNext():
+                            pass
+                    except Exception:
+                        print("PERFORMING CLIENT RESET")
+                        os._exit(1)
                 else:
-                    self.connection.connection.sendall(b"<IDLE>")
-            elif message["message"] == "<ONLINE?>":
-                self.connection.connection.sendall(b"<ONLINE>")
-            elif message["message"] == "<UPDATE>":
-                Command = Commands.Command(["<UPDATE>"], self.commandlist)
-                try:
-                    while Command.RunNext():
-                        pass
-                except Exception:
-                    print("PERFORMING CLIENT RESET")
-                    os._exit(1)
-            else:
-                time.sleep(0.1)
+                    time.sleep(0.1)
+            except Exception:
+                pass
