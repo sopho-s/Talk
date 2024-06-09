@@ -87,13 +87,14 @@ class Server:
                         message = {}
                         message["message"] = "<WELCOME>"
                         message["name"] = data["name"]
+                        name = data["name"]
                         message["keys"] = [self.e, self.n]
                         conn.sendall(Data.Data(message).Encode())
                         data = Data.Data(conn.recv(1024)).Decode()
                         self.keys = data["keys"]
                         for i in range(4):
                             self.keys[i] = DecryptRSA(self.keys[i], self.d, self.n)
-                        objconn = Connection.Connection(conn, addr, data["name"], *self.keys)
+                        objconn = Connection.Connection(conn, addr, name, *self.keys)
                         if self.acceptall:
                             objconn.Send({"message" : "<VALID>"})
                         data = objconn.Recieve(1024)
