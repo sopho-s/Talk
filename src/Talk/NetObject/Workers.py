@@ -73,12 +73,12 @@ class StatusWorkerClient:
                 break
             except:
                 time.sleep(1)
-        message = {"message" : "<CONNECTED>", "name" : self.name.decode()}
+        message = {"message" : "<CONNECTED>", "name" : name.decode()}
         s.sendall(Data.Data(message).Encode())
         data = ""
         while len(data) == 0:
             data = Data.Data(s.recv(1024)).Decode()
-        if data["message"] != "<WELCOME>" or data["name"]  != self.name.decode():
+        if data["message"] != "<WELCOME>" or data["name"]  != name.decode():
             raise Exception("SERVER DID NOT REPOND CORRECTLY, INSTEAD GOT: " + data)
         message = {"id" : str(self.id)}
         s.sendall(Data.Data(message).Encode())
