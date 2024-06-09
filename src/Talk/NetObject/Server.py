@@ -101,7 +101,8 @@ class Server:
                 s.close()
     @Threading.threaded
     def RecieveCommand(self, connection):
-        if connection.Recieve(1024)["message"] != "<DONE_JOB>":
+        message = connection.Recieve(1024)
+        if message["message"] != "<DONE_JOB>":
             raise Exception("RECEIVED INCORRECT RESPONSE")
         connection.Send({"message" : "<GET_OUTPUT>"})
         output = connection.RecieveAll()
@@ -123,7 +124,7 @@ class Server:
                         time.sleep(0.1)
                         connection = self.connectionqueue.DeQueue()
                     connection.Send({"commands" : commands, "command_amount" : len(commands)}, True)
-                    if connection.Recieve(1024)["messsage"] != "<READY>":
+                    if connection.Recieve(1024)["message"] != "<READY>":
                         raise Exception("RECEIVED INCORRECT RESPONSE")
                     connection.Send({"message" : "<START_JOB>"})
                     if shouldberestored:

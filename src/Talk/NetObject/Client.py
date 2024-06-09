@@ -66,7 +66,9 @@ class CommandClient:
                     print(f"RECIEVED {commands}")
                     self.isbusy = True
                     connection.Send({"message" : "<READY>"})
-                    if connection.RecieveAll()["message"] != "<START_JOB>":
+                    message = connection.RecieveAll()
+                    print(message)
+                    if message["message"] != "<START_JOB>":
                         raise Exception("RECEIVED INCORRECT RESPONSE")
                     Command = Commands.Command(commands["commands"], self.commands)
                     try:
