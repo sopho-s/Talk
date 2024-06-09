@@ -67,10 +67,10 @@ def GenerateRandom():
 
 def GenPrimes():
     prime1 = 0
-    while prime1 < 500:
+    while prime1 < 1000:
         prime1 = getnthprime(GenerateRandom() % (10 ** 5))
     prime2 = 0
-    while prime2 < 500:
+    while prime2 < 1000:
         prime2 = getnthprime(GenerateRandom() % (10 ** 5))
     return prime1, prime2
 

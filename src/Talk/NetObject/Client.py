@@ -36,6 +36,35 @@ class CommandClient:
         self.commands = commands
         self.id = id
         self.key = key
+    def GenerateKeyLists(self, key1, key2, key3, key4):
+        key1list = []
+        key1 = str(key1)
+        while len(key1) > 6:
+            key1list.append(int(key1[0:6]))
+            key1 = key1[6:]
+        key1list.append(int(key1))
+        
+        key2list = []
+        key2 = str(key2)
+        while len(key2) > 6:
+            key2list.append(int(key2[0:6]))
+            key2 = key2[6:]
+        key2list.append(int(key2))
+        
+        key3list = []
+        key3 = str(key3)
+        while len(key3) > 6:
+            key3list.append(int(key3[0:6]))
+            key3 = key3[6:]
+        key3list.append(int(key3))
+        
+        key4list = []
+        key4 = str(key4)
+        while len(key4) > 6:
+            key4list.append(int(key4[0:6]))
+            key4 = key4[6:]
+        key4list.append(int(key4))
+        return key1list, key2list, key3list, key4list
     def ConnectClient(self, HOST, PORT):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
@@ -54,17 +83,11 @@ class CommandClient:
                     raise Exception("SERVER DID NOT REPOND CORRECTLY, INSTEAD GOT: " + data)
                 e = data["keys"][0]
                 n = data["keys"][1]
-                print(e)
-                print(n)
                 key1, key2, key3, key4 = EncryptionKeyGen()
-                print("\n\n")
-                print(key1)
-                print(key2)
-                print(key3)
-                print(key4)
-                message = {"keys" : [EncryptRSA(key1, e, n), EncryptRSA(key2, e, n), EncryptRSA(key3, e, n), EncryptRSA(key4, e, n)]}
-                s.sendall(Data.Data(message).Encode())
                 connection = Connection.Connection(s, HOST, self.name, key1, key2, key3, key4)
+                key1list, key2list, key3list, key4list = self.GenerateKeyLists(key1, key2, key3, key4)
+                message = {"key1" : [EncryptRSA(keyval, e, n) for keyval in key1list], "key2" : [EncryptRSA(keyval, e, n) for keyval in key2list], "key3" : [EncryptRSA(keyval, e, n) for keyval in key3list], "key4" : [EncryptRSA(keyval, e, n) for keyval in key4list]}
+                s.sendall(Data.Data(message).Encode())
                 data = connection.Recieve(1024)
                 if data["message"] != "<VALID>":
                     raise Exception("RECEIVED INCORRECT RESPONSE")

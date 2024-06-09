@@ -18,3 +18,5 @@ class Data:
         self.data = self.data.decode("utf-8")
         self.JSONify()
         return self.data
+        
+    
