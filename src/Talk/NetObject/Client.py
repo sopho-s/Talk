@@ -3,6 +3,7 @@ import time
 import os
 from ..Command import Commands
 from ..NetObject import Workers
+from ..Objects import Data
 
 class Client:
     def __init__(self):
@@ -26,13 +27,14 @@ class SleepyClient:
                 s.close()
 
 class CommandClient:
-    def __init__(self, name, commands, id):
+    def __init__(self, name, commands, id, key=None):
         self.name = name
         self.workerthread = None
         self.workerobject = None
         self.isbusy = None
         self.commands = commands
         self.id = id
+        self.key = key
     def ConnectClient(self, HOST, PORT):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
@@ -42,17 +44,20 @@ class CommandClient:
                         break
                     except:
                         time.sleep(1)
-                s.sendall(b"<CONNECTED>" + self.name)
+                message = {"message" : "<CONNECTED>", "name" : self.name.decode()}
+                s.sendall(Data.Data(message).Encode())
                 data = ""
                 while len(data) == 0:
-                    data = s.recv(1024).decode()
-                if data != "<WELCOME " + self.name.decode() + ">":
+                    data = Data.Data(s.recv(1024)).Decode()
+                if data["message"] != "<WELCOME>" or data["name"]  != self.name.decode():
                     raise Exception("SERVER DID NOT REPOND CORRECTLY, INSTEAD GOT: " + data)
-                strid = str(self.id)
-                s.sendall(strid.encode("utf-8"))
-                if s.recv(1024).decode() != "<VALID>":
+                message = {"id" : str(self.id)}
+                s.sendall(Data.Data(message).Encode())
+                data = Data.Data(s.recv(1024)).Decode()
+                if data["message"] != "<VALID>":
                     raise Exception("RECEIVED INCORRECT RESPONSE")
-                s.sendall(b"<CLIENT>")
+                message = {"type" : "<CLIENT>"}
+                s.sendall(Data.Data(message).Encode())
                 print("CLIENT CONNECTED")
                 self.workerthread, self.workerobject = Workers.StatusWorkerClient(HOST, PORT, self.name.decode(), self.id, self, self.commands)
                 commands = []

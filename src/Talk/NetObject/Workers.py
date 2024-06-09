@@ -20,9 +20,9 @@ class StatusWorkerServer:
     def StatusRequest(self):
         try:
             self.connection.Send(b"<GIVE_STATUS>")
-            self.connection.SetTimeout(2)
+            self.connection.SetTimeout(5)
             msg = self.connection.Recieve(1024).decode()
-            if msg != "<OK_START>":
+            if msg[-10:] != "<OK_START>":
                 if msg == "":
                     raise ConnectionResetError()
                 raise Exception("RECEIVED INCORRECT RESPONSE")
@@ -38,9 +38,9 @@ class StatusWorkerServer:
                 total += (time.time() - start) / 10
             total *= 1000
             start = time.time()
-            self.connection.Send(b"*" * 1000000)
+            self.connection.Send(b"*" * 10000000)
             end = time.time() - start
-            uploadspeed = (1000000 / (1024 * 1024)) / end
+            uploadspeed = (10000000 / (1024 * 1024)) / end
             self.connection.Send(b"<EOF>")
             msg = self.connection.Recieve(1024).decode()
             self.connection.SetTimeout(None)

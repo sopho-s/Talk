@@ -6,7 +6,7 @@ import os
 from ..NetObject import Connection
 from ..NetObject import Workers
 from ..Threading import Threading
-from ..Objects import Queue
+from ..Objects import Queue, Data
 
 class StatusWidgit:
     def __init__(self, widgit, objconn):
@@ -52,6 +52,7 @@ class Server:
         self.printlock = threading.Lock()
         self.acceptall = False
         self.connectedids = []
+        self.key = key
     def AddUser(self, type, connection):
         if type == "<CLIENT>":
             print("NEW CLIENT CONNECTED")
@@ -79,22 +80,23 @@ class Server:
                     conn, addr = s.accept()
                     data = ""
                     while len(data) == 0:
-                        data = conn.recv(1024).decode()
-                        print(data)
-                    if data[0:11] == "<CONNECTED>":
-                        objconn = Connection.Connection(conn, addr, data[11:])
-                        objconn.Send(b"<WELCOME " + objconn.name.encode('utf-8') + b">")
-                        data = conn.recv(1024).decode()
-                        print(data)
+                        data = Data.Data(conn.recv(1024)).Decode()
+                    if data["message"] == "<CONNECTED>":
+                        objconn = Connection.Connection(conn, addr, data["name"])
+                        message = {}
+                        message["message"] = "<WELCOME>"
+                        message["name"] = data["name"]
+                        objconn.Send(Data.Data(message).Encode())
+                        data = Data.Data(conn.recv(1024)).Decode()
                         if self.acceptall:
-                            objconn.Send(b"<VALID>")
-                        data = conn.recv(1024).decode()
+                            objconn.Send(Data.Data({"message" : "<VALID>"}).Encode())
+                        data = Data.Data(conn.recv(1024)).Decode()
                         print(data)
-                        self.AddUser(data, objconn)
+                        self.AddUser(data["type"], objconn)
                     else:
-                        conn.sendall(b"CLIENT ATTEMPTED TO CONNECT TO A COMMAND SERVER WITHOUT COMMANDS, THUS CONNECTION WILL BE TERMINATED")
+                        conn.sendall(Data.Data({"message" : "CLIENT ATTEMPTED TO CONNECT TO A COMMAND SERVER WITHOUT COMMANDS, THUS CONNECTION WILL BE TERMINATED"}).Encode())
                         conn.close()  
-                        print(f"CLIENT ATTEMPTED TO CONNECT TO A COMMAND SERVER WITHOUT COMMANDS, INSTEAD GOT {data[0:11]}")
+                        print(f"CLIENT ATTEMPTED TO CONNECT TO A COMMAND SERVER WITHOUT COMMANDS, INSTEAD GOT {data["name"]}")
             except KeyboardInterrupt:
                 s.close()
     @Threading.threaded

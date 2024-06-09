@@ -1,4 +1,5 @@
 import socket
+from ..Objects import Data
 
 class Connection:
     def __init__(self, connection, address, name=""):
@@ -23,7 +24,7 @@ class Connection:
     def SetTimeout(self, timeout):
         self.connection.settimeout(timeout)
     def Recieve(self, amount):
-        return self.connection.recv(amount)
+        return Data.Data(self.connection.recv(amount)).Decode()
     def RecieveAll(self):
         bytes = bytearray()
         while True:
@@ -32,9 +33,9 @@ class Connection:
                 break
             else:
                 bytes.extend(data)
-        return bytes
+        return Data.Data(bytes).Decode()
     def Send(self, data):
-        self.connection.sendall(data)
+        self.connection.sendall(Data.Data(data).Encode())
     def SendFile(self, filename):
         file = open(filename, "r")
         data = file.read(4096)
