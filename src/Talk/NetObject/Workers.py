@@ -21,7 +21,7 @@ class StatusWorkerServer:
     def StatusRequest(self):
         try:
             self.connection.Send({"message" : "<GIVE_STATUS>"})
-            self.connection.SetTimeout(20)
+            self.connection.SetTimeout(3)
             msg = self.connection.connection.recv(1024).decode()
             if msg[-10:] != "<OK_START>":
                 if msg == "":
@@ -39,9 +39,9 @@ class StatusWorkerServer:
                 total += (time.time() - start) / 10
             total *= 1000
             start = time.time()
-            self.connection.connection.sendall(b"*" * 1000000)
+            self.connection.connection.sendall(b"*" * 5000000)
             end = time.time() - start
-            uploadspeed = (1000000 / (1024 * 1024)) / end
+            uploadspeed = (5000000 / (1024 * 1024)) / end
             self.connection.connection.sendall(b"<EOF>")
             msg = self.connection.connection.recv(1024).decode()
             self.connection.SetTimeout(None)
@@ -53,12 +53,16 @@ class StatusWorkerServer:
                 raise ConnectionResetError()
             raise Exception("RECEIVED INCORRECT RESPONSE")
         except ConnectionResetError:
+            self.connection.connection.send(b" ")
             return 0, 0, False, False
         except ConnectionAbortedError:
+            self.connection.connection.send(b" ")
             return 0, 0, False, False
         except TimeoutError:
+            self.connection.connection.send(b" ")
             return 0, 0, False, False
         except ZeroDivisionError:
+            self.connection.connection.send(b" ")
             return 0, 0, False, False
 
 @Threading.classthreaded
@@ -105,7 +109,7 @@ class StatusWorkerClient:
                     data = ""
                     while True:
                         data = self.connection.connection.recv(4096)
-                        if len(data) == 0:
+                        if data[-1:] == b" ":
                             raise Exception("CONNECTION ERROR, RETRYING")
                         if data[-5:] == b"<EOF>":
                             break
