@@ -107,7 +107,9 @@ class Server:
         connection.Send({"message" : "<GET_OUTPUT>"})
         output = connection.RecieveAll()
         with self.printlock:
-            print(output["output"])
+            for out in output["output"]:
+                print(out)
+                print("\n\n")
         with self.commandlock:
             connection = self.connectionqueue.EnQueue(connection)
     @Threading.threaded

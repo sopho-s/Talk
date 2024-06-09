@@ -39,11 +39,11 @@ class StatusWorkerServer:
                 total += (time.time() - start) / 10
             total *= 1000
             start = time.time()
-            self.connection.connection.sendall(b"*" * 5000000)
-            end = time.time() - start
-            uploadspeed = (5000000 / (1024 * 1024)) / end
+            self.connection.connection.sendall(b"*" * 1000000)
             self.connection.connection.sendall(b"<EOF>")
             msg = self.connection.connection.recv(1024).decode()
+            end = time.time() - start
+            uploadspeed = (1000000 / (1024 * 1024)) / end
             self.connection.SetTimeout(None)
             if msg == "<BUSY>":
                 return total, uploadspeed, True, True
