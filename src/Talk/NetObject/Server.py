@@ -88,7 +88,7 @@ class Server:
                         message["message"] = "<WELCOME>"
                         message["name"] = data["name"]
                         message["keys"] = [self.e, self.n]
-                        self.connection.sendall(Data.Data(message).Encode())
+                        conn.sendall(Data.Data(message).Encode())
                         data = Data.Data(conn.recv(1024)).Decode()
                         self.keys = data["keys"]
                         for i in range(4):

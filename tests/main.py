@@ -18,7 +18,7 @@ decrypted = Encryption.DecryptRSA(encrypted, d, n)
 
 print(decrypted)'''
 
-key1, key2, key3, key4 = Encryption.EncryptionKeyGen()
+'''key1, key2, key3, key4 = Encryption.EncryptionKeyGen()
 
 print(Bits.BitArray(key1))
 print(Bits.BitArray(key2))
@@ -29,6 +29,6 @@ data = Encryption.Encrypt("hello my name is nick and this is a fairly long senta
 
 print(data)
 
-print(Encryption.Decrypt(data, key1, key2, key3, key4))
+print(Encryption.Decrypt(data, key1, key2, key3, key4))'''
 
-#talkint.main()
+talkint.main()

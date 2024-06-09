@@ -75,14 +75,18 @@ def GenPrimes():
     return prime1, prime2
 
 def RSA():
-    prime1, prime2 = GenPrimes()
-    n = prime1 * prime2
-    phi = (prime1-1) * (prime2-1)
-    e = 2
-    while phi % e == 0:
-        e += 1
-    d = pow(e, -1, phi)
-    return e, d, n
+    while True:
+        try:
+            prime1, prime2 = GenPrimes()
+            n = prime1 * prime2
+            phi = (prime1-1) * (prime2-1)
+            e = 2
+            while phi % e == 0:
+                e += 1
+            d = pow(e, -1, phi)
+            return e, d, n
+        except ValueError:
+            pass
 
 def EncryptRSA(data, e, n):
     return pow(data, e, n)
