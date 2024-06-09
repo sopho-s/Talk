@@ -96,22 +96,22 @@ class StatusWorkerClient:
             message = self.connection.Recieve(1024)
             if message["message"] == "<GIVE_STATUS>":
                 print("GIVING STATUS")
-                self.connection.Send(b"<OK_START>")
+                self.connection.connection.sendall(b"<OK_START>")
                 for i in range(10):
-                    if self.connection.Recieve(1024).decode() != "<PING>":
+                    if self.connection.connection.recv(1024).decode() != "<PING>":
                         raise Exception("RECEIVED INCORRECT RESPONSE")
-                    self.connection.Send(b"<PONG>")
+                    self.connection.connection.sendall(b"<PONG>")
                 data = ""
                 while True:
-                    data = self.connection.Recieve(4096)
+                    data = self.connection.connection.recv(4096)
                     if data[-5:] == b"<EOF>":
                         break
                 if self.client.isbusy:
-                    self.connection.Send(b"<BUSY>")
+                    self.connection.connection.sendall(b"<BUSY>")
                 else:
-                    self.connection.Send(b"<IDLE>")
+                    self.connection.connection.sendall(b"<IDLE>")
             elif message["message"] == "<ONLINE?>":
-                self.connection.Send(b"<ONLINE>")
+                self.connection.connection.sendall(b"<ONLINE>")
             elif message["message"] == "<UPDATE>":
                 Command = Commands.Command(["<UPDATE>"], self.commandlist)
                 try:
