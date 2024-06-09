@@ -54,11 +54,13 @@ class CommandClient:
                     raise Exception("SERVER DID NOT REPOND CORRECTLY, INSTEAD GOT: " + data)
                 e = data["keys"][0]
                 n = data["keys"][1]
+                print(e)
+                print(n)
                 key1, key2, key3, key4 = EncryptionKeyGen()
-                print(key1)
-                print(key2)
-                print(key3)
-                print(key4)
+                #print(key1)
+                #print(key2)
+                #print(key3)
+                #print(key4)
                 message = {"keys" : [EncryptRSA(key1, e, n), EncryptRSA(key2, e, n), EncryptRSA(key3, e, n), EncryptRSA(key4, e, n)]}
                 s.sendall(Data.Data(message).Encode())
                 connection = Connection.Connection(s, HOST, self.name, key1, key2, key3, key4)

@@ -92,7 +92,8 @@ def EncryptRSA(data, e, n):
     return pow(data, e, n)
 
 def DecryptRSA(data, d, n):
-    return pow(data, d, n)
+    returnval = pow(data, d, n)
+    return returnval
 
 def EncryptionKeyGen():
     strkey = str(GenerateRandom()) + str(GenerateRandom())
