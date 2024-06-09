@@ -93,7 +93,7 @@ class StatusWorkerClient:
         self.commandlist = commandlist
     def Run(self):
         while True:
-            message = self.connection.Recieve()
+            message = self.connection.Recieve(1024)
             if message["message"] == "<GIVE_STATUS>":
                 print("GIVING STATUS")
                 self.connection.Send(b"<OK_START>")
