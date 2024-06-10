@@ -29,7 +29,7 @@ class SleepyClient:
 
 class CommandClient:
     def __init__(self, name, commands, id, key=None):
-        self.checksum = 1718051589
+        self.checksum = 1718051895
         self.name = name
         self.workerthread = None
         self.workerobject = None
