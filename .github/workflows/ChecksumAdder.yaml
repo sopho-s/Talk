@@ -9,7 +9,7 @@ jobs:
       - run: |
           bash Scripts/AddChecksum.sh 
       - name: switching from HTTPS to SSH
-        run: git remote set-url origin main
+        run: git remote set-url origin https://github.com/sopho-s/Talk
       - name: check for changes
         run: git status
       - name: stage changed files
