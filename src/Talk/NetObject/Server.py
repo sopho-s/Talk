@@ -85,6 +85,7 @@ class Server:
                     while len(data) == 0:
                         data = Data.Data(conn.recv(1024)).Decode()
                     if data["message"] == "<CONNECTED>":
+                        print("CONNECTION ESTABLISHING")
                         message = {}
                         message["message"] = "<WELCOME>"
                         message["name"] = data["name"]
