@@ -63,7 +63,7 @@ def MakeSettings(root, cServer):
     
 def main(ip, port):
     root = tk.Tk()
-    cServer = Server.Server("10.101.1.59", 4245, root)
+    cServer = Server.Server(ip, port, root)
     button = tk.Button(root, text='Start Server', width=40, height=4, command=lambda: StartServer(root, button, cServer))
     button.pack_forget()
     button.pack()

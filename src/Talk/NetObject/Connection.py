@@ -35,7 +35,9 @@ class Connection:
         bytes = bytearray()
         while True:
             data = self.connection.recv(1024)
-            if data == b" ":
+            print(data)
+            if data[-1] == b"\x00":
+                bytes.extend(data[:-1])
                 break
             else:
                 bytes.extend(data)
@@ -43,7 +45,7 @@ class Connection:
     def Send(self, data, withnull = False):
         self.connection.sendall(Encrypt(Data.Data(data).Encode().decode("utf-8"), self.key1, self.key2, self.key3, self.key4).encode("utf-8"))
         if withnull:
-            self.connection.sendall(b" ")
+            self.connection.sendall(b"\x00")
     def SendFile(self, filename):
         file = open(filename, "r")
         data = file.read(4096)

@@ -31,4 +31,4 @@ print(data)
 
 print(Encryption.Decrypt(data, key1, key2, key3, key4))'''
 
-talkint.main("10.101.1.59", 4245)
+talkint.main("127.0.0.1", 42424)

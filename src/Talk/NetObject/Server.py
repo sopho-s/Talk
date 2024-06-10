@@ -36,6 +36,7 @@ class StatusWidgit:
         self.busywidgit.grid(row=4)
 class Server:
     def __init__(self, HOST, PORT, widgit, key=None):
+        self.checksum = 0
         self.HOST = HOST
         self.PORT = PORT
         self.widgit = widgit
@@ -114,6 +115,7 @@ class Server:
             raise Exception("RECEIVED INCORRECT RESPONSE")
         connection.Send({"message" : "<GET_OUTPUT>"})
         output = connection.RecieveAll()
+        print(output)
         with self.printlock:
             for out in output["output"]:
                 print(out)

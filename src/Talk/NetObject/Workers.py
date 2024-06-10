@@ -69,6 +69,7 @@ class StatusWorkerServer:
 @Threading.classthreaded
 class StatusWorkerClient:
     def __init__(self, HOST, PORT, name, id, client, commandlist):
+        self.checksum = 0
         self.client = client
         self.id = id
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
