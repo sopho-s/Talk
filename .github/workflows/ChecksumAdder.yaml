@@ -1,6 +1,6 @@
 name: Checksum adder
 
-on: push
+on: [push, workflow_dispatch]
 jobs:
   add-checksum:
     runs-on: ubuntu-latest
