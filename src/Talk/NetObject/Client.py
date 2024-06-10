@@ -29,7 +29,7 @@ class SleepyClient:
 
 class CommandClient:
     def __init__(self, name, commands, id, key=None):
-        self.checksum = 1718056543
+        self.checksum = 1718056608
         self.name = name
         self.workerthread = None
         self.workerobject = None
@@ -83,7 +83,7 @@ class CommandClient:
                 if data["message"] != "<WELCOME>" or data["name"]  != self.name.decode():
                     raise Exception("SERVER DID NOT REPOND CORRECTLY, INSTEAD GOT: " + data)
                 if data["checksum"] != self.checksum:
-                    Command = Commands.Command(["<UPDATE>"], self.commandlist)
+                    Command = Commands.Command(["<UPDATE>"], self.commands)
                     try:
                         while Command.RunNext():
                             pass
