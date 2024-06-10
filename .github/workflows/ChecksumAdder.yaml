@@ -6,4 +6,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: bash Scripts/AddChecksum.sh
+      - run: |
+          bash Scripts/AddChecksum.sh 
+          git config --global user.name "sopho-s"
+          git config --global user.email "woodsnicholas01@gmail.com"
+          git add -A
+          git commit -m "commit message"
+          git push
