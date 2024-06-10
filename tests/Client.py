@@ -25,4 +25,4 @@ else:
         f.write(str(key))
     name = names[key % len(names)]
 Client = C.CommandClient(name.encode("utf-8"), commands, key)
-Client.ConnectClient("127.0.0.1", 4245)
+Client.ConnectClient("10.101.1.59", 4245)
