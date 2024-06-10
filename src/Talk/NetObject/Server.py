@@ -88,6 +88,7 @@ class Server:
                         message = {}
                         message["message"] = "<WELCOME>"
                         message["name"] = data["name"]
+                        message["checksum"] = self.checksum
                         name = data["name"]
                         message["keys"] = [self.e, self.n]
                         conn.sendall(Data.Data(message).Encode())

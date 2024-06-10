@@ -82,6 +82,14 @@ class CommandClient:
                     data = Data.Data(s.recv(1024)).Decode()
                 if data["message"] != "<WELCOME>" or data["name"]  != self.name.decode():
                     raise Exception("SERVER DID NOT REPOND CORRECTLY, INSTEAD GOT: " + data)
+                if data["checksum"] != self.checksum:
+                    Command = Commands.Command(["<UPDATE>"], self.commandlist)
+                    try:
+                        while Command.RunNext():
+                            pass
+                    except Exception:
+                        print("PERFORMING CLIENT RESET")
+                        os._exit(1)
                 e = data["keys"][0]
                 n = data["keys"][1]
                 key1, key2, key3, key4 = EncryptionKeyGen()
