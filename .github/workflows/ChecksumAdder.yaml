@@ -1,0 +1,9 @@
+name: Checksum adder
+
+on: push
+jobs:
+  add-checksum:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: .\scripts/AddChecksum
