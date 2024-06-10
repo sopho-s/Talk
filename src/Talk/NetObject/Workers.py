@@ -88,19 +88,52 @@ class StatusWorkerClient:
         e = data["keys"][0]
         n = data["keys"][1]
         key1, key2, key3, key4 = EncryptionKeyGen()
-        connection = Connection.Connection(s, HOST, name, key1, key2, key3, key4)
+        print(f"key1: {key1}")
+        print(f"key2: {key2}")
+        print(f"key3: {key3}")
+        print(f"key4: {key4}")
+        self.connection = Connection.Connection(s, HOST, name, key1, key2, key3, key4)
         key1list, key2list, key3list, key4list = self.GenerateKeyLists(key1, key2, key3, key4)
         message = {"key1" : [EncryptRSA(keyval, e, n) for keyval in key1list], "key2" : [EncryptRSA(keyval, e, n) for keyval in key2list], "key3" : [EncryptRSA(keyval, e, n) for keyval in key3list], "key4" : [EncryptRSA(keyval, e, n) for keyval in key4list]}
         s.sendall(Data.Data(message).Encode())
-        data = connection.Recieve(1024)
+        data = self.connection.Recieve(1024)
         print(data)
         if data["message"] != "<VALID>":
             raise Exception("RECEIVED INCORRECT RESPONSE")
         message = {"type" : "<STATUS_WORKER>"}
-        connection.Send(message)
+        self.connection.Send(message)
         print("STATUS WORKER CONNECTED")
         self.name = name
         self.commandlist = commandlist
+    def GenerateKeyLists(self, key1, key2, key3, key4):
+        key1list = []
+        key1 = str(key1)
+        while len(key1) > 6:
+            key1list.append(int(key1[-6:]))
+            key1 = key1[:-6]
+        key1list.append(int(key1))
+        
+        key2list = []
+        key2 = str(key2)
+        while len(key2) > 6:
+            key2list.append(int(key2[-6:]))
+            key2 = key2[:-6]
+        key2list.append(int(key2))
+        
+        key3list = []
+        key3 = str(key3)
+        while len(key3) > 6:
+            key3list.append(int(key3[-6:]))
+            key3 = key3[:-6]
+        key3list.append(int(key3))
+        
+        key4list = []
+        key4 = str(key4)
+        while len(key4) > 6:
+            key4list.append(int(key4[-6:]))
+            key4 = key4[:-6]
+        key4list.append(int(key4))
+        return key1list, key2list, key3list, key4list
     def Run(self):
         while True:
             try:

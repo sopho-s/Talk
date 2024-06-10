@@ -92,8 +92,7 @@ def EncryptRSA(data, e, n):
     return pow(data, e, n)
 
 def DecryptRSA(data, d, n):
-    returnval = pow(data, d, n)
-    return returnval
+    return pow(data, d, n)
 
 def EncryptionKeyGen():
     strkey = str(GenerateRandom()) + str(GenerateRandom())
@@ -147,7 +146,7 @@ def Encrypt16(data, key1, key2, key3, key4):
             
     databits = Bits.BitArray("".join(data))
     keybits = Bits.BitArray(key4)
-    '''databits ^= keybits'''
+    databits ^= keybits
     return databits.String()
 
 def Decrypt(data, key1, key2, key3, key4):
@@ -165,7 +164,7 @@ def Decrypt(data, key1, key2, key3, key4):
 def Decrypt16(data, key1, key2, key3, key4):
     databits = Bits.BitArray(data)
     keybits = Bits.BitArray(key4)
-    '''databits ^= keybits'''
+    databits ^= keybits
     data = list(map(str, databits.String()))
     random.seed(key2)
     for i in range(4):

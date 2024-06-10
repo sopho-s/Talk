@@ -30,9 +30,7 @@ class Connection:
     def SetTimeout(self, timeout):
         self.connection.settimeout(timeout)
     def Recieve(self, amount):
-        data = Decrypt(self.connection.recv(amount).decode("utf-8"), self.key1, self.key2, self.key3, self.key4).encode("utf-8")
-        print(data)
-        return Data.Data(data).Decode()
+        return Data.Data(Decrypt(self.connection.recv(amount).decode("utf-8"), self.key1, self.key2, self.key3, self.key4).encode("utf-8")).Decode()
     def RecieveAll(self):
         bytes = bytearray()
         while True:
