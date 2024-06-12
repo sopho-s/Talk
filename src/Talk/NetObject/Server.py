@@ -6,6 +6,7 @@ import os
 from ..NetObject import Connection
 from ..NetObject import Workers
 from ..Threading import Threading
+from ..Command import Commands
 from ..Objects import Queue, Data
 from ..Encryption import *
 
@@ -94,6 +95,14 @@ class Server:
                         message["keys"] = [self.e, self.n]
                         conn.sendall(Data.Data(message).Encode())
                         data = Data.Data(conn.recv(1024)).Decode()
+                        if data["checksum"] > self.checksum:
+                            Command = Commands.Command(["<UPDATE>"], self.commands)
+                            try:
+                                while Command.RunNext():
+                                    pass
+                            except Exception:
+                                print("PERFORMING CLIENT RESET")
+                                os._exit(1)
                         key1 = int("".join(["0" * (6-len(str(DecryptRSA(keyval, self.d, self.n)))) + str(DecryptRSA(keyval, self.d, self.n)) for keyval in reversed(data["key1"])]))
                         key2 = int("".join(["0" * (6-len(str(DecryptRSA(keyval, self.d, self.n)))) + str(DecryptRSA(keyval, self.d, self.n)) for keyval in reversed(data["key2"])]))
                         key3 = int("".join(["0" * (6-len(str(DecryptRSA(keyval, self.d, self.n)))) + str(DecryptRSA(keyval, self.d, self.n)) for keyval in reversed(data["key3"])]))
