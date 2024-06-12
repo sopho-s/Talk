@@ -37,7 +37,7 @@ class StatusWidgit:
         self.busywidgit.grid(row=4)
 class Server:
     def __init__(self, HOST, PORT, widgit, key=None):
-        self.checksum = 1718057105
+        self.checksum = 1718209941
         self.HOST = HOST
         self.PORT = PORT
         self.widgit = widgit
