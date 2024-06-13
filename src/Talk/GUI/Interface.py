@@ -3,8 +3,9 @@ try:
 except ModuleNotFoundError:
     import tkinter as tk
     
-import os
-from ..NetObject import Server
+import os, json, random
+from pathlib import Path
+from ..NetObject import Server, Client
 
 cServer = None
 
@@ -61,11 +62,38 @@ def MakeSettings(root, cServer):
     apply.grid(row=1)
     
     
-def main(ip, port):
+def ServerInterface(ip, port, commands):
     root = tk.Tk()
-    cServer = Server.Server(ip, port, root)
+    cServer = Server.Server(ip, port, commands, root)
     button = tk.Button(root, text='Start Server', width=40, height=4, command=lambda: StartServer(root, button, cServer))
     button.pack_forget()
     button.pack()
     MakeSettings(root, cServer)
     root.mainloop()
+
+def ClientInterface(ip, port, commands):
+    with open("clientnames.csv", "r") as f:
+        names = f.read().split(",")
+    name = ""
+    key = 0
+    if os.path.isfile(os.path.expanduser( '~' ) + "/clientid.key"):
+        with open(os.path.expanduser( '~' ) + "/clientid.key", "r") as f:
+            key = int(f.read())
+            name = names[key % len(names)]
+    else:
+        key = random.randint(0, 2**64)
+        Path(os.path.expanduser( '~' ) + "/clientid.key").touch()
+        with open(os.path.expanduser( '~' ) + "/clientid.key", "w") as f:
+            f.write(str(key))
+        name = names[key % len(names)]
+    client = Client.RequestClient(name.encode("utf-8"), commands, key)
+    client.ConnectClient(ip, port)
+    root = tk.Tk()
+    commands = tk.Text(root, height = 5, width = 52)
+    submit = tk.Button(root, width=20, height=2, text='Submit', command=lambda: SubmitClientCommands(commands, client))
+    commands.pack()
+    submit.pack()
+    root.mainloop()
+
+def SubmitClientCommands(commands, client):
+    client.requests.EnQueue(commands)

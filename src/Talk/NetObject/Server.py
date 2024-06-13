@@ -36,7 +36,7 @@ class StatusWidgit:
         self.onlinewidgit.grid(row=3)
         self.busywidgit.grid(row=4)
 class Server:
-    def __init__(self, HOST, PORT, widgit, key=None):
+    def __init__(self, HOST, PORT, commands, widgit = None, maxslaves = 10, key=None):
         self.checksum = 1718057105
         self.HOST = HOST
         self.PORT = PORT
@@ -45,7 +45,8 @@ class Server:
         self.statuswidgits = []
         self.statusworkers = []
         self.statushandler = []
-        self.users = []
+        self.userthreads = []
+        self.macrolist = commands
         self.commands = []
         self.commandlock = threading.Lock()
         self.commandhandler = None
@@ -53,7 +54,7 @@ class Server:
         self.update = False
         self.shutdown = False
         self.printlock = threading.Lock()
-        self.acceptall = False
+        self.acceptall = True
         self.connectedids = []
         self.keys = [0, 0, 0, 0]
         self.e, self.d, self.n = RSA()
@@ -64,14 +65,18 @@ class Server:
         elif type == "<STATUS_WORKER>":
             print("NEW STATUS WORKER CONNECTED")
             if not any(statuswidgit.name == connection.name for statuswidgit in self.statuswidgits):
-                newstatuswidgit = StatusWidgit(self.widgit, connection)
-                self.statuswidgits.append(newstatuswidgit)
+                if self.widgit != None:
+                    newstatuswidgit = StatusWidgit(self.widgit, connection)
+                    self.statuswidgits.append(newstatuswidgit)
                 self.statusworkers.append(Workers.StatusWorkerServer(connection))
             else:
                 for worker in self.statusworkers:
                     if worker.name == connection.name:
                         worker.connection = connection
             self.statusupdate = True
+        elif type == "<USER>":
+            print("NEW USER CONNECTED")
+            self.userthreads.append(self.UserHandler(connection))
     @Threading.threaded
     def StartServer(self):
         self.statushandler = self.StatusHandler()
@@ -96,7 +101,7 @@ class Server:
                         conn.sendall(Data.Data(message).Encode())
                         data = Data.Data(conn.recv(1024)).Decode()
                         if data["checksum"] > self.checksum:
-                            Command = Commands.Command(["<UPDATE>"], self.commands)
+                            Command = Commands.Command(["<UPDATE>"], self.macrolist)
                             try:
                                 while Command.RunNext():
                                     pass
@@ -155,7 +160,7 @@ class Server:
                 except KeyboardInterrupt:
                     break
             else:
-                time.sleep(0.2)
+                time.sleep(0.05)
     @Threading.threaded
     def StatusHandler(self):
         while True:
@@ -166,13 +171,14 @@ class Server:
             if self.statusupdate:
                 print("REQUESTING STATUS")
                 for worker in self.statusworkers:
-                    currentwidgit = None
-                    for statuswidgit in self.statuswidgits:
-                        if statuswidgit.name == worker.name:
-                            currentwidgit = statuswidgit
-                            break
                     ping, uploadspeed, online, isbusy = worker.StatusRequest()
-                    self.UpdateStatusWidgit(currentwidgit, ping, uploadspeed, online, isbusy)
+                    if self.widgit != None:
+                        currentwidgit = None
+                        for statuswidgit in self.statuswidgits:
+                            if statuswidgit.name == worker.name:
+                                currentwidgit = statuswidgit
+                                break
+                        self.UpdateStatusWidgit(currentwidgit, ping, uploadspeed, online, isbusy)
                 self.statusupdate = False
             else:
                 time.sleep(0.5)
@@ -218,3 +224,13 @@ class Server:
         else:
             currentwidgit.busywidgit.config(text=f"Idle")
             currentwidgit.busywidgit.config(fg="#00d100")
+    @Threading.threaded
+    def UserHandler(self, user):
+        while True:
+            commands = user.RecieveAll()
+            user.Send({"message" : "<OK>"})
+            if commands["statusupdate"]:
+                pass
+            else:
+                with self.commandlock:
+                    self.commands.append(commands["message"])

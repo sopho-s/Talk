@@ -30,22 +30,20 @@ class Connection:
     def SetTimeout(self, timeout):
         self.connection.settimeout(timeout)
     def Recieve(self, amount):
-        return Data.Data(Decrypt(self.connection.recv(amount).decode("utf-8"), self.key1, self.key2, self.key3, self.key4).encode("utf-8")).Decode()
+        return Data.Data(self.connection.recv(amount).decode("utf-8").encode("utf-8")).Decode()
     def RecieveAll(self):
         bytes = bytearray()
         while True:
             data = self.connection.recv(1024)
-            print(data)
-            if data[-1] == b"\x00":
-                bytes.extend(data[:-1])
+            bytes.extend(data)
+            if bytes[-5:] == b"\x00\x00\x00\x00\x00":
+                bytes = bytes[:-5]
                 break
-            else:
-                bytes.extend(data)
-        return Data.Data(Decrypt(bytes.decode("utf-8"), self.key1, self.key2, self.key3, self.key4).encode("utf-8")).Decode()
+        return Data.Data(bytes.decode("utf-8").encode("utf-8")).Decode()
     def Send(self, data, withnull = False):
-        self.connection.sendall(Encrypt(Data.Data(data).Encode().decode("utf-8"), self.key1, self.key2, self.key3, self.key4).encode("utf-8"))
+        self.connection.sendall(Data.Data(data).Encode().decode("utf-8").encode("utf-8"))
         if withnull:
-            self.connection.sendall(b"\x00")
+            self.connection.sendall(b"\x00\x00\x00\x00\x00")
     def SendFile(self, filename):
         file = open(filename, "r")
         data = file.read(4096)

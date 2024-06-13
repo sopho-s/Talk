@@ -3,8 +3,10 @@ import time
 import os
 from ..Command import Commands
 from ..NetObject import Workers, Connection
-from ..Objects import Data
+from ..Objects import Data, Queue
 from ..Encryption import *
+from ..Threading import Threading
+from ..Sanitise import *
 
 class Client:
     def __init__(self):
@@ -148,31 +150,22 @@ class CommandClient:
 
 class RequestClient(CommandClient):
     def __init__(self, name, commands, id, key=None):
-        super.__init__(name, commands, id, key)
+        super().__init__(name, commands, id, key)
+        self.requests = Queue.CircularQueue(10)
+    @Threading.threaded
     def ConnectClient(self, HOST, PORT):
         self.EstablishConnection(HOST, PORT, "USER")
         try:
-            self.workerthread, self.workerobject = Workers.StatusWorkerClient(HOST, PORT, self.name.decode(), self.id, self, self.commands)
             while True:
-                commands = self.connection.RecieveAll()
-                print(f"RECIEVED {commands}")
-                self.isbusy = True
-                self.connection.Send({"message" : "<READY>"})
-                if self.connection.Recieve(1024)["message"] != "<START_JOB>":
-                    raise Exception("RECEIVED INCORRECT RESPONSE")
-                Command = Commands.Command(commands["commands"], self.commands)
-                try:
-                    while Command.RunNext():
-                        pass
-                except Exception:
-                    self.Reset(s)
-                print("JOBDONE")
-                self.connection.Send({"message" : "<DONE_JOB>"})
-                if self.connection.Recieve(1024)["message"] != "<GET_OUTPUT>":
-                    raise Exception("RECEIVED INCORRECT RESPONSE")
-                self.connection.Send({"output" : Command.stdout}, True)
-                commands = {}
-                self.isbusy = False
+                if self.requests.count != 0:
+                    request = self.requests.DeQueue().get("1.0","end").split("\n")
+                    self.connection.Send({"message" : request, "statusupdate" : False}, True)
+                    message = self.connection.Recieve(1024)
+                    print(message)
+                    if message["message"] != "<OK>":
+                        raise Exception("RECEIVED INCORRECT RESPONSE")
+                else:
+                    time.sleep(0.05)
         except KeyboardInterrupt:
             os._exit(1)
         except ConnectionResetError:
