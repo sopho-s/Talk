@@ -38,10 +38,10 @@ class StatusWidgit:
 class Server:
 <<<<<<< HEAD
     def __init__(self, HOST, PORT, commands, widgit = None, maxslaves = 10, key=None):
-        self.checksum = 1718057105
+        self.checksum = 1718293696
 =======
     def __init__(self, HOST, PORT, widgit, key=None):
-        self.checksum = 1718209941
+        self.checksum = 1718293696
 >>>>>>> 4b6b23da5ae37303fd313d785e44ebd1f0656ff7
         self.HOST = HOST
         self.PORT = PORT
