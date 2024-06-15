@@ -124,6 +124,11 @@ class CommandClient:
             self.workerthread, self.workerobject = Workers.StatusWorkerClient(HOST, PORT, self.name.decode(), self.id, self, self.commands)
             while True:
                 commands = self.connection.RecieveAll()
+                if "message" in commands.keys():
+                    if commands["message"] == "<ONLINE?>":
+                        print("ONLINE")
+                        self.connection.Send({"message" : "<ISONLINE>"})
+                        continue
                 print(f"RECIEVED {commands}")
                 self.isbusy = True
                 self.connection.Send({"message" : "<READY>"})

@@ -18,12 +18,29 @@ class Connection:
         try:
             self.connection.sendall(b"<ONLINE?>")
             data = self.connection.recv(1024)
-            if not data.decode() == "":
+            if data.decode() == "":
                 self.isonline = True
                 return True
         except ConnectionAbortedError:
             pass
         except ConnectionResetError:
+            pass
+        except BrokenPipeError:
+            pass
+        self.isonline = False
+        return False
+    def ComplexCheckOnline(self):
+        try:
+            self.Send({"message" : "<ONLINE?>"}, True)
+            data = self.Recieve(1024)
+            if data != "":
+                self.isonline = True
+                return True
+        except ConnectionAbortedError:
+            pass
+        except ConnectionResetError:
+            pass
+        except BrokenPipeError:
             pass
         self.isonline = False
         return False

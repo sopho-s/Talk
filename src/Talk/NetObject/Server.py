@@ -100,6 +100,8 @@ class Server:
                         message["keys"] = [self.e, self.n]
                         conn.sendall(Data.Data(message).Encode())
                         data = Data.Data(conn.recv(1024)).Decode()
+                        if data == "":
+                            continue
                         if data["checksum"] > self.checksum:
                             Command = Commands.Command(["<UPDATE>"], self.macrolist)
                             try:
@@ -121,7 +123,7 @@ class Server:
                     else:
                         conn.sendall(Data.Data({"message" : "CLIENT ATTEMPTED TO CONNECT TO A COMMAND SERVER WITHOUT COMMANDS, THUS CONNECTION WILL BE TERMINATED"}).Encode())
                         conn.close()  
-                        print(f"CLIENT ATTEMPTED TO CONNECT TO A COMMAND SERVER WITHOUT COMMANDS, INSTEAD GOT {data["name"]}")
+                        print(f"CLIENT ATTEMPTED TO CONNECT TO A COMMAND SERVER WITHOUT COMMANDS, INSTEAD GOT {data['name']}")
             except KeyboardInterrupt:
                 s.close()
     @Threading.threaded
@@ -143,6 +145,7 @@ class Server:
         while True:
             shouldberestored = True
             if self.connectionqueue.count != 0 and len(self.commands) > 0:
+                print("PERFORMING COMMANDS")
                 commands = []
                 with self.commandlock:
                     commands = self.commands.pop(0)
@@ -160,6 +163,13 @@ class Server:
                 except KeyboardInterrupt:
                     break
             else:
+                print(f"connection count {self.connectionqueue.count} : Command count {len(self.commands)}")
+                index = 0
+                for conn in self.connectionqueue:
+                    if not conn.ComplexCheckOnline():
+                        self.connectionqueue.Remove(index)
+                    else:
+                        index += 1
                 time.sleep(0.05)
     @Threading.threaded
     def StatusHandler(self):
@@ -170,8 +180,20 @@ class Server:
                 self.update = False
             if self.statusupdate:
                 print("REQUESTING STATUS")
-                for worker in self.statusworkers:
+                print(f"CURRENT CONNECTIONS: {len(self.connectionqueue)}")
+                i = 0
+                while i < len(self.statusworkers):
+                    worker = self.statusworkers[i]
                     ping, uploadspeed, online, isbusy = worker.StatusRequest()
+                    if ping == None:
+                        index = 0
+                        for client in self.connectionqueue:
+                            if client.name == worker.name:
+                                self.connectionqueue.Remove(index)
+                                continue
+                            i += 1
+                        self.statusworkers.pop(i)
+                        continue
                     if self.widgit != None:
                         currentwidgit = None
                         for statuswidgit in self.statuswidgits:
@@ -179,6 +201,7 @@ class Server:
                                 currentwidgit = statuswidgit
                                 break
                         self.UpdateStatusWidgit(currentwidgit, ping, uploadspeed, online, isbusy)
+                    i += 1
                 self.statusupdate = False
             else:
                 time.sleep(0.5)
@@ -233,4 +256,5 @@ class Server:
                 pass
             else:
                 with self.commandlock:
+                    print(commands)
                     self.commands.append(commands["message"])

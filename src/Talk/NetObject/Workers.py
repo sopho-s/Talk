@@ -21,50 +21,53 @@ class StatusWorkerServer:
             return
     def StatusRequest(self):
         try:
-            self.connection.Send({"message" : "<GIVE_STATUS>"})
-            self.connection.SetTimeout(3)
-            msg = self.connection.connection.recv(1024).decode()
-            if msg[-10:] != "<OK_START>":
-                if msg == "":
-                    raise ConnectionResetError()
-                raise Exception("RECEIVED INCORRECT RESPONSE")
-            total = 0
-            for i in range(10):
-                self.connection.connection.sendall(b"<PING>")
-                start = time.time()
+            try:
+                self.connection.Send({"message" : "<GIVE_STATUS>"})
+                self.connection.SetTimeout(3)
                 msg = self.connection.connection.recv(1024).decode()
-                if msg != "<PONG>":
+                if msg[-10:] != "<OK_START>":
                     if msg == "":
                         raise ConnectionResetError()
                     raise Exception("RECEIVED INCORRECT RESPONSE")
-                total += (time.time() - start) / 10
-            total *= 1000
-            start = time.time()
-            self.connection.connection.sendall(b"*" * 1000000)
-            self.connection.connection.sendall(b"<EOF>")
-            msg = self.connection.connection.recv(1024).decode()
-            end = time.time() - start
-            uploadspeed = (1000000 / (1024 * 1024)) / end
-            self.connection.SetTimeout(None)
-            if msg == "<BUSY>":
-                return total, uploadspeed, True, True
-            if msg == "<IDLE>":
-                return total, uploadspeed, True, False
-            elif msg == "":
-                raise ConnectionResetError()
-            raise Exception("RECEIVED INCORRECT RESPONSE")
-        except ConnectionResetError:
-            self.connection.connection.send(b" ")
-            return 0, 0, False, False
-        except ConnectionAbortedError:
-            self.connection.connection.send(b" ")
-            return 0, 0, False, False
-        except TimeoutError:
-            self.connection.connection.send(b" ")
-            return 0, 0, False, False
-        except ZeroDivisionError:
-            self.connection.connection.send(b" ")
-            return 0, 0, False, False
+                total = 0
+                for i in range(10):
+                    self.connection.connection.sendall(b"<PING>")
+                    start = time.time()
+                    msg = self.connection.connection.recv(1024).decode()
+                    if msg != "<PONG>":
+                        if msg == "":
+                            raise ConnectionResetError()
+                        raise Exception("RECEIVED INCORRECT RESPONSE")
+                    total += (time.time() - start) / 10
+                total *= 1000
+                start = time.time()
+                self.connection.connection.sendall(b"*" * 1000000)
+                self.connection.connection.sendall(b"<EOF>")
+                msg = self.connection.connection.recv(1024).decode()
+                end = time.time() - start
+                uploadspeed = (1000000 / (1024 * 1024)) / end
+                self.connection.SetTimeout(None)
+                if msg == "<BUSY>":
+                    return total, uploadspeed, True, True
+                if msg == "<IDLE>":
+                    return total, uploadspeed, True, False
+                elif msg == "":
+                    raise ConnectionResetError()
+                raise Exception("RECEIVED INCORRECT RESPONSE")
+            except ConnectionResetError:
+                self.connection.connection.send(b" ")
+                return 0, 0, False, False
+            except ConnectionAbortedError:
+                self.connection.connection.send(b" ")
+                return 0, 0, False, False
+            except TimeoutError:
+                self.connection.connection.send(b" ")
+                return 0, 0, False, False
+            except ZeroDivisionError:
+                self.connection.connection.send(b" ")
+                return 0, 0, False, False
+        except BrokenPipeError:
+            return None, None, None, None
 
 @Threading.classthreaded
 class StatusWorkerClient:
