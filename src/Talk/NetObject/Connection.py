@@ -56,6 +56,8 @@ class Connection:
             if bytes[-5:] == b"\x00\x00\x00\x00\x00":
                 bytes = bytes[:-5]
                 break
+            elif data == "":
+                return ""
         return Data.Data(bytes.decode("utf-8").encode("utf-8")).Decode()
     def Send(self, data, withnull = False):
         self.connection.sendall(Data.Data(data).Encode().decode("utf-8").encode("utf-8"))
